@@ -26,12 +26,12 @@ split.
 
 Other options include:
 
-- verbose: Display a message when spawning the SSH shell
-- fail: Whether to not do anything if the current pane is *not* running SSH.
-By default a normal split will be done.
-- no_shell: If set to `true` this will disable the spawning of a shell session
-- *after* the SSH session. This will make the pane exit when the SSH session
-- ends.
+- `@ssh_split_verbose`: Display a message when spawning the SSH shell
+- `@ssh_split_fail`: Whether to not do anything if the current pane is *not* 
+running SSH. By default a normal split will be done.
+- `@ssh_split_no_shell`: If set to `true` this will disable the spawning of a
+shell session *after* the SSH session. This will make the pane exit when the 
+SSH session ends.
 
 ## Example config
 
