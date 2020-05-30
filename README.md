@@ -26,16 +26,20 @@ split.
 
 Other options include:
 
-- `@ssh_split_verbose`: Display a message when spawning the SSH shell
+- `@ssh_split_keep_cwd`: Whether to set the start directory of the new pane to
+the one from the current pane. (Essentially the same as what
+`tmux split -c "#{pane_current_path}"` does)
 - `@ssh_split_fail`: Whether to not do anything if the current pane is *not* 
 running SSH. By default a normal split will be done.
 - `@ssh_split_no_shell`: If set to `true` this will disable the spawning of a
 shell session *after* the SSH session. This will make the pane exit when the 
 SSH session ends.
+- `@ssh_split_verbose`: Display a message when spawning the SSH shell
 
 ## Example config
 
 ```
+set-option -g @ssh_split_keep_cwd "true"
 set-option -g @ssh_split_fail "false"
 set-option -g @ssh_split_no_shell "false"
 set-option -g @ssh_split_verbose "true"

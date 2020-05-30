@@ -19,11 +19,18 @@ main() {
   local verbose
   local vkey
 
+  keep_cwd="$(get_tmux_option @ssh_split_keep_cwd)"
   fail="$(get_tmux_option @ssh_split_fail)"
   hkey="$(get_tmux_option @ssh_split_h_key)"
   noshell="$(get_tmux_option @ssh_split_no_shell)"
   verbose="$(get_tmux_option @ssh_split_verbose)"
   vkey="$(get_tmux_option @ssh_split_v_key)"
+
+  case "$keep_cwd" in
+    true|1|yes)
+      extra_args+=(-c "#{pane_current_path}")
+      ;;
+  esac
 
   case "$fail" in
     true|1|yes)
