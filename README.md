@@ -1,6 +1,6 @@
 # TMUX SSH split
 
-![](./tmux-ssh-split.gif)
+[![](./tmux-ssh-split.gif)](https://asciinema.org/a/335250)
 
 This plugin builds upon the idea of [sshh](https://github.com/yudai/sshh/).
 It's essentially a modern version of the same idea.
