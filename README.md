@@ -21,32 +21,32 @@ set -g @plugin 'pschmitt/tmux-ssh-split'
 ## Configuration
 
 To have this plugin do anything you need to at least set one of
-`ssh_split_h_key` or `ssh_split_v_key`.
+`ssh-split-h-key` or `ssh-split-v-key`.
 
 They should contain the key that will be bound to respectively the h or v
 split.
 
 Other options include:
 
-- `@ssh_split_keep_cwd`: Whether to set the start directory of the new pane to
+- `@ssh-split-keep-cwd`: Whether to set the start directory of the new pane to
 the one from the current pane. (Essentially the same as what
 `tmux split -c "#{pane_current_path}"` does)
-- `@ssh_split_fail`: Whether to not do anything if the current pane is *not* 
+- `@ssh-split-fail`: Whether to not do anything if the current pane is *not* 
 running SSH. By default a normal split will be done.
-- `@ssh_split_no_shell`: If set to `true` this will disable the spawning of a
+- `@ssh-split-no-shell`: If set to `true` this will disable the spawning of a
 shell session *after* the SSH session. This will make the pane exit when the 
 SSH session ends.
-- `@ssh_split_verbose`: Display a message when spawning the SSH shell
+- `@ssh-split-verbose`: Display a message when spawning the SSH shell
 
 ## Example config
 
 ```
-set-option -g @ssh_split_keep_cwd "true"
-set-option -g @ssh_split_fail "false"
-set-option -g @ssh_split_no_shell "false"
-set-option -g @ssh_split_verbose "true"
-set-option -g @ssh_split_h_key "|"
-set-option -g @ssh_split_v_key "S"
+set-option -g @ssh-split-keep-cwd "true"
+set-option -g @ssh-split-fail "false"
+set-option -g @ssh-split-no-shell "false"
+set-option -g @ssh-split-verbose "true"
+set-option -g @ssh-split-h-key "|"
+set-option -g @ssh-split-v-key "S"
 
 set -g @plugin 'pschmitt/tmux-ssh-split'
 ```

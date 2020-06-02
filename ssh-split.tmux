@@ -19,12 +19,12 @@ main() {
   local verbose
   local vkey
 
-  keep_cwd="$(get_tmux_option @ssh_split_keep_cwd)"
-  fail="$(get_tmux_option @ssh_split_fail)"
-  hkey="$(get_tmux_option @ssh_split_h_key)"
-  noshell="$(get_tmux_option @ssh_split_no_shell)"
-  verbose="$(get_tmux_option @ssh_split_verbose)"
-  vkey="$(get_tmux_option @ssh_split_v_key)"
+  keep_cwd="$(get_tmux_option @ssh-split-keep-cwd)"
+  fail="$(get_tmux_option @ssh-split-fail)"
+  hkey="$(get_tmux_option @ssh-split-h-key)"
+  noshell="$(get_tmux_option @ssh-split-no-shell)"
+  verbose="$(get_tmux_option @ssh-split-verbose)"
+  vkey="$(get_tmux_option @ssh-split-v-key)"
 
   case "$keep_cwd" in
     true|1|yes)
