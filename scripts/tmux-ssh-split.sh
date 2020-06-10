@@ -73,7 +73,11 @@ then
           usage >&2
           exit 2
         fi
-        SPLIT_ARGS+=(-c "$2")
+        # Only set start dir if it still exists
+        if [[ -d "$2" ]]
+        then
+          SPLIT_ARGS+=(-c "$2")
+        fi
         shift 2
         ;;
       --fail)

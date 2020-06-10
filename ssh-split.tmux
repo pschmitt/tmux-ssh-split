@@ -28,7 +28,10 @@ main() {
 
   case "$keep_cwd" in
     true|1|yes)
-      extra_args+=(-c "#{pane_current_path}")
+      # Double quote path since it may contain spaces.
+      # Especially when the current dir gets deleted, tmux then
+      # appends " (removed)"
+      extra_args+=(-c '"#{pane_current_path}"')
       ;;
   esac
 
