@@ -125,8 +125,8 @@ then
       default_shell="$(command -v sh)"
     fi
 
-    # Append default shell
-    start_cmd+="; ${default_shell}"
+    # Open default shell on exit (SSH timeout, Ctrl-C etc.)
+    start_cmd="trap ${default_shell} EXIT INT; $start_cmd"
   fi
 
   if [[ -n "$VERBOSE" ]]
