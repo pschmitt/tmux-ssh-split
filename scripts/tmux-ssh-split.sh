@@ -50,6 +50,14 @@ get_ssh_command() {
   return 1
 }
 
+get_remote_cwd() {
+  # PROBABLY WON'T EVER WORK
+  # To get the current paths on the remote server one can run the following:
+  # for pid in $(pgrep -P "$(pgrep -a sshd | grep -- "${SSH_TTY##/dev/}" | awk '{ print $1; exit }')"); do realpath /proc/$pid/cwd; done
+  echo "Not implemented yet!" >&2
+  return 1
+}
+
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]
 then
 
