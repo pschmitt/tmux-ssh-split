@@ -40,7 +40,7 @@ get_ssh_command() {
 
   for child_pid in $(pgrep -P "${pane_pid}")
   do
-    child_cmd="$(ps -o cmd= "$child_pid")"
+    child_cmd="$(ps -o command= "$child_pid")"
     if [[ "$child_cmd" =~ ^(auto)?ssh.* ]]
     then
       echo "$child_cmd"
