@@ -26,6 +26,7 @@ get_pane_pid_from_pane_id() {
 # $1 is optional, disable 2120
 # shellcheck disable=2120
 get_ssh_command() {
+  local child_cmd
   local pane_id
   local pane_pid
 
@@ -38,15 +39,15 @@ get_ssh_command() {
     return 3
   fi
 
-  for child_pid in $(pgrep -P "${pane_pid}")
+  ps -o command= -g "${pane_pid}" | while read -r child_cmd
   do
-    child_cmd="$(ps -o command= "$child_pid")"
     if [[ "$child_cmd" =~ ^(auto)?ssh.* ]]
     then
       echo "$child_cmd"
       return
     fi
   done
+
   return 1
 }
 
@@ -60,7 +61,6 @@ get_remote_cwd() {
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]
 then
-
   SPLIT_ARGS=()
 
   while [[ -n "$*" ]]
