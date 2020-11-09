@@ -41,10 +41,14 @@ get_ssh_command() {
 
   ps -o command= -g "${pane_pid}" | while read -r child_cmd
   do
-    if [[ "$child_cmd" =~ ^(auto)?ssh.* ]]
+    if [[ "$child_cmd" =~ ^(auto)?ssh ]]
     then
-      echo "$child_cmd"
-      return
+      # Filter out "ssh -W"
+      if ! grep -qE "ssh\s+-W" <<< "$child_cmd"
+      then
+        echo "$child_cmd"
+        return
+      fi
     fi
   done
 
