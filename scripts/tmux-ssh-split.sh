@@ -23,6 +23,61 @@ get_pane_pid_from_pane_id() {
   tmux list-panes -F "#{pane_id} #{pane_pid}" | awk "/^$1 / { print \$2}"
 }
 
+strip_command() {
+  # Re-set the args in case the whole command is passed through "$1"
+  if [[ "$#" -eq 1 ]]
+  then
+    # shellcheck disable=2086
+    set -- $1
+  fi
+
+  local ssh_host
+  ssh_host=$(extract_ssh_host "$@")
+
+  sed -nr "s/(.*${ssh_host}).*/\1/p" <<< "$*"
+}
+
+extract_ssh_host() {
+  # Re-set the args in case the whole command is passed through "$1"
+  if [[ "$#" -eq 1 ]]
+  then
+    # shellcheck disable=2086
+    set -- $1
+  fi
+  shift  # shift the commad (ssh)
+
+  while [[ -n "$*" ]]
+  do
+    case "$1" in
+      # Optionless flags (can be combined - hence the "*"
+      -4*|-6*|-A*|-a*|-C*|-f*|-G*|-g*|-K*|-k*|-M*|-N*|-n*|-q*|-s*|-T*|-t*|-v*|-V*|-X*|-x*|-Y*|-y*)
+        shift
+        ;;
+      # Flags with options
+      -B|-b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-O|-o|-p|-Q|-R|-S|-W|-w)
+        shift 2
+        ;;
+      # Unknown flags
+      -*)
+        echo "Unknown flag: $1" >&2
+        return 9
+        shift
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+
+  if [[ -n "$1" ]]
+  then
+    echo "$1"
+    return
+  fi
+
+  return 1
+}
+
 # $1 is optional, disable 2120
 # shellcheck disable=2120
 get_ssh_command() {
@@ -104,6 +159,10 @@ then
         VERBOSE=1
         shift
         ;;
+      --strip-cmd|--strip|-s)
+        STRIP_CMD=1
+        shift
+        ;;
       -*)
         usage >&2
         exit 2
@@ -112,6 +171,10 @@ then
   done
 
   ssh_command="$(get_ssh_command)"
+  if [[ -n "$STRIP_CMD" ]]
+  then
+    ssh_command="$(strip_command "$ssh_command")"
+  fi
 
   if [[ -z "$ssh_command" ]]
   then

@@ -29,14 +29,18 @@ split.
 Other options include:
 
 - `@ssh-split-keep-cwd`: Whether to set the start directory of the new pane to
-the one from the current pane. (Essentially the same as what
-`tmux split -c "#{pane_current_path}"` does)
+the one from the current pane. This has essentially the same effect as 
+`tmux split -c "#{pane_current_path}"`.
 - `@ssh-split-fail`: Whether to not do anything if the current pane is *not* 
 running SSH. By default a normal split will be done.
 - `@ssh-split-no-shell`: If set to `true` this will disable the spawning of a
 shell session *after* the SSH session. This will make the pane exit when the 
 SSH session ends.
-- `@ssh-split-verbose`: Display a message when spawning the SSH shell
+- `@ssh-split-strip-cmd`: If set to `true` the SSH command executed in the new
+pane will be stripped of the remote command portion. Example: when splitting
+a pane where `ssh HOST COMMAND` is running this will make tmux-ssh-split create
+a new pane with a start command of `ssh HOST`. Default: `false`.
+- `@ssh-split-verbose`: Display a message when spawning the SSH shell.
 
 ## Example config
 
@@ -44,6 +48,7 @@ SSH session ends.
 set-option -g @ssh-split-keep-cwd "true"
 set-option -g @ssh-split-fail "false"
 set-option -g @ssh-split-no-shell "false"
+set-option -g @ssh-split-strip-cmd "true"
 set-option -g @ssh-split-verbose "true"
 set-option -g @ssh-split-h-key "|"
 set-option -g @ssh-split-v-key "S"

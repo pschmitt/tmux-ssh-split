@@ -22,6 +22,7 @@ main() {
   keep_cwd="$(get_tmux_option @ssh-split-keep-cwd)"
   fail="$(get_tmux_option @ssh-split-fail)"
   hkey="$(get_tmux_option @ssh-split-h-key)"
+  stripcmd="$(get_tmux_option @ssh-split-strip-cmd)"
   noshell="$(get_tmux_option @ssh-split-no-shell)"
   verbose="$(get_tmux_option @ssh-split-verbose)"
   vkey="$(get_tmux_option @ssh-split-v-key)"
@@ -44,6 +45,12 @@ main() {
   case "$noshell" in
     true|1|yes)
       extra_args+=(--no-shell)
+      ;;
+  esac
+
+  case "$stripcmd" in
+    true|1|yes)
+      extra_args+=(--strip-cmd)
       ;;
   esac
 
