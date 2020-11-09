@@ -60,8 +60,8 @@ extract_ssh_host() {
       # Unknown flags
       -*)
         echo "Unknown flag: $1" >&2
-        return 9
         shift
+        return 9
         ;;
       *)
         break
