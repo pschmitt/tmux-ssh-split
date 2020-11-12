@@ -23,6 +23,35 @@ get_pane_pid_from_pane_id() {
   tmux list-panes -F "#{pane_id} #{pane_pid}" | awk "/^$1 / { print \$2}"
 }
 
+__is_ssh_option() {
+  # This returns a shift index
+  # 0: Don't shift (this is the hostname or part of the command)
+  # 1: shift 1 (optionless flags)
+  # 2: shift 2 (flags with mandatory options)
+  case "$1" in
+    autossh|ssh)
+      echo "1"
+      ;;
+    # Optionless flags (can be combined - hence the "*"
+    -4*|-6*|-A*|-a*|-C*|-f*|-G*|-g*|-K*|-k*|-M*|-N*|-n*|-q*|-s*|-T*|-t*|-v*|-V*|-X*|-x*|-Y*|-y*)
+      echo "1"
+      ;;
+    # Flags with options
+    -B|-b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-O|-o|-p|-Q|-R|-S|-W|-w)
+      echo "2"
+      ;;
+    # Unknown flags
+    -*)
+      echo "Unknown flag: $1" >&2
+      return 9
+      ;;
+    # Command
+    *)
+      echo "0"
+      ;;
+  esac
+}
+
 strip_command() {
   # FIXME This won't work for commands like the followin:
   # ssh host.example.com -l root
@@ -35,10 +64,68 @@ strip_command() {
     set -- $1
   fi
 
-  local ssh_host
-  ssh_host=$(extract_ssh_host "$@")
+  # local ssh_host
+  # ssh_host=$(extract_ssh_host "$@")
+  #
+  # sed -nr "s/(.*${ssh_host}).*/\1/p" <<< "$*"
+  local og_args=("$@")
+  local res=()
+  local shift_index
+  local host_index=0
 
-  sed -nr "s/(.*${ssh_host}).*/\1/p" <<< "$*"
+  while [[ -n "$*" ]]
+  do
+    shift_index=$(__is_ssh_option "$1")
+
+    # shellcheck disable=2181
+    # Stop processing args if we hit a command
+    if [[ "$?" -ne 0 ]] || [[ "$shift_index" == "0" ]]
+    then
+      break
+    fi
+    host_index=$(( host_index + shift_index ))
+
+    if [[ -n "$shift_index" ]]
+    then
+      shift "$shift_index"
+    fi
+  done
+
+  if [[ "$1" ]]
+  then
+    # Shift host
+    shift
+  fi
+
+  # Save remaining args
+  local post_host_args=("$@")
+  local post_index=0
+  res=("${og_args[@]::${host_index}}")
+
+  while [[ -n "$*" ]]
+  do
+    shift_index=$(__is_ssh_option "$1")
+
+    # shellcheck disable=2181
+    # Stop processing args if we hit a command
+    if [[ "$?" -ne 0 ]] || [[ "$shift_index" == "0" ]]
+    then
+      break
+    fi
+
+    if [[ -n "$shift_index" ]]
+    then
+      res+=("${post_host_args[@]:${post_index}:$(( post_index + shift_index ))}")
+      post_index=$(( post_index + shift_index ))
+      shift "$shift_index"
+    fi
+  done
+
+  # Echo result back and append host
+  if [[ -n "${res[*]}" ]]
+  then
+    echo "${res[*]} ${og_args[${host_index}]}"
+  fi
 }
 
 extract_ssh_host() {
@@ -50,27 +137,21 @@ extract_ssh_host() {
   fi
   shift  # shift the commad (ssh)
 
+  local shift_index
+
   while [[ -n "$*" ]]
   do
-    case "$1" in
-      # Optionless flags (can be combined - hence the "*"
-      -4*|-6*|-A*|-a*|-C*|-f*|-G*|-g*|-K*|-k*|-M*|-N*|-n*|-q*|-s*|-T*|-t*|-v*|-V*|-X*|-x*|-Y*|-y*)
-        shift
-        ;;
-      # Flags with options
-      -B|-b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-O|-o|-p|-Q|-R|-S|-W|-w)
-        shift 2
-        ;;
-      # Unknown flags
-      -*)
-        echo "Unknown flag: $1" >&2
-        shift
-        return 9
-        ;;
-      *)
-        break
-        ;;
-    esac
+    shift_index=$(__is_ssh_option "$1")
+
+    if [[ "$?" -ne 0 ]] || [[ "$shift_index" == "0" ]]
+    then
+      break
+    fi
+
+    if [[ -n "$shift_index" ]]
+    then
+      shift "$shift_index"
+    fi
   done
 
   if [[ -n "$1" ]]
