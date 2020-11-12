@@ -64,10 +64,12 @@ strip_command() {
     set -- $1
   fi
 
-  # local ssh_host
-  # ssh_host=$(extract_ssh_host "$@")
-  #
-  # sed -nr "s/(.*${ssh_host}).*/\1/p" <<< "$*"
+  # Return immediately if not processing an SSH command
+  if ! [[ "$1" =~ ^(auto)?ssh ]]
+  then
+    return 1
+  fi
+
   local og_args=("$@")
   local res=()
   local shift_index
