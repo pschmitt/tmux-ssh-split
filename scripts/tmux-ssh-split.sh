@@ -24,6 +24,10 @@ get_pane_pid_from_pane_id() {
 }
 
 strip_command() {
+  # FIXME This won't work for commands like the followin:
+  # ssh host.example.com -l root
+  # It will remove the "-l root" part.
+
   # Re-set the args in case the whole command is passed through "$1"
   if [[ "$#" -eq 1 ]]
   then
@@ -38,10 +42,6 @@ strip_command() {
 }
 
 extract_ssh_host() {
-  # FIXME This won't work for commands like the followin:
-  # ssh host.example.com -l root
-  # It will remove the "-l root" part.
-
   # Re-set the args in case the whole command is passed through "$1"
   if [[ "$#" -eq 1 ]]
   then
