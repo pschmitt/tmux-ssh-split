@@ -47,7 +47,7 @@ __is_ssh_option() {
       ;;
     # Command
     *)
-      echo "0"
+      return 1
       ;;
   esac
 }
@@ -78,13 +78,14 @@ strip_command() {
   while [[ -n "$*" ]]
   do
     shift_index=$(__is_ssh_option "$1")
-
     # shellcheck disable=2181
     # Stop processing args if we hit a command
-    if [[ "$?" -ne 0 ]] || [[ "$shift_index" == "0" ]]
+    if [[ "$?" -ne 0 ]]
     then
       break
     fi
+
+    # Advance host index (we didn't process that arg yet)
     host_index=$(( host_index + shift_index ))
 
     if [[ -n "$shift_index" ]]
@@ -93,7 +94,7 @@ strip_command() {
     fi
   done
 
-  if [[ "$1" ]]
+  if [[ -n "$1" ]]
   then
     # Shift host
     shift
@@ -104,19 +105,22 @@ strip_command() {
   local post_index=0
   res=("${og_args[@]::${host_index}}")
 
+  # Process args that follow the hostname
   while [[ -n "$*" ]]
   do
     shift_index=$(__is_ssh_option "$1")
 
     # shellcheck disable=2181
     # Stop processing args if we hit a command
-    if [[ "$?" -ne 0 ]] || [[ "$shift_index" == "0" ]]
+    if [[ "$?" -ne 0 ]]
     then
       break
     fi
 
     if [[ -n "$shift_index" ]]
     then
+      # Add SSH option (+ arg) to the end of the res array. This will end up
+      # *before* the hostname in what's printed to stdout at the end.
       res+=("${post_host_args[@]:${post_index}:$(( post_index + shift_index ))}")
       post_index=$(( post_index + shift_index ))
       shift "$shift_index"
@@ -144,8 +148,8 @@ extract_ssh_host() {
   while [[ -n "$*" ]]
   do
     shift_index=$(__is_ssh_option "$1")
-
-    if [[ "$?" -ne 0 ]] || [[ "$shift_index" == "0" ]]
+    # shellcheck disable=2181
+    if [[ "$?" -ne 0 ]]
     then
       break
     fi
