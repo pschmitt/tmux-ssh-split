@@ -55,3 +55,22 @@ set-option -g @ssh-split-v-key "S"
 
 set -g @plugin 'pschmitt/tmux-ssh-split'
 ```
+
+## Compatibility with other plugins
+
+Some plugins may try to bind the same keys than `tmux-ssh-split`.
+
+### Problem
+
+[tmux-pain-control](https://github.com/tmux-plugins/tmux-pain-control) is one
+of those.
+With the example config above, both `tmux-ssh-split` and `tmux-pain-control`
+would try to bind the `|` key. The plugin loaded last wins.
+
+### Solution
+
+To make `tmux-pain-control` not bind the `|` key you can set the following:
+
+```
+set -g @disabled_keys "|"
+```
