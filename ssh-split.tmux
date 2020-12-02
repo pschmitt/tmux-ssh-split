@@ -64,11 +64,13 @@ main() {
 
   if [[ -n "$hkey" ]]
   then
+    tmux unbind "$hkey"
     tmux bind-key "$hkey" run "${swd} ${extra_args[*]} -h"
   fi
 
   if [[ -n "$vkey" ]]
   then
+    tmux unbind "$vkey"
     tmux bind-key "$vkey" run "${swd} ${extra_args[*]} -v"
   fi
 }
