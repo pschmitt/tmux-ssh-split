@@ -69,7 +69,12 @@ would try to bind the `|` key. The plugin loaded last wins.
 
 ### Solution
 
-To make `tmux-pain-control` not bind the `|` key you can set the following:
+I've sent [a PR to fix this](https://github.com/tmux-plugins/tmux-pain-control/pull/33)
+upstream. In the meantime you can
+[use my fork](https://github.com/pschmitt/tmux-pain-control/).
+
+To make the **forked** `tmux-pain-control` not bind the `|` key you can set 
+the following:
 
 ```
 set -g @disabled_keys "|"
