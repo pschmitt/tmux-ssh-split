@@ -60,18 +60,19 @@ main() {
       ;;
   esac
 
-  swd="$(readlink -f "$(dirname "$0")")/scripts/tmux-ssh-split.sh"
+  current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  script_path="${current_dir}/scripts/tmux-ssh-split.sh"
 
   if [[ -n "$hkey" ]]
   then
     tmux unbind "$hkey"
-    tmux bind-key "$hkey" run "${swd} ${extra_args[*]} -h"
+    tmux bind-key "$hkey" run "${script_path} ${extra_args[*]} -h"
   fi
 
   if [[ -n "$vkey" ]]
   then
     tmux unbind "$vkey"
-    tmux bind-key "$vkey" run "${swd} ${extra_args[*]} -v"
+    tmux bind-key "$vkey" run "${script_path} ${extra_args[*]} -v"
   fi
 }
 
