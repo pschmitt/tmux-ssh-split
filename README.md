@@ -58,7 +58,7 @@ set -g @plugin 'pschmitt/tmux-ssh-split'
 
 ## Compatibility with other plugins
 
-Some plugins may try to bind the same keys than `tmux-ssh-split`.
+Some plugin may try to bind the same keys than `tmux-ssh-split`.
 
 ### Problem
 
