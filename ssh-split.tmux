@@ -12,10 +12,11 @@ get_tmux_option() {
 
 main() {
   local -a extra_args
+  local current_dir
   local fail
   local hkey
   local noshell
-  local swd
+  local script_path
   local verbose
   local vkey
 
