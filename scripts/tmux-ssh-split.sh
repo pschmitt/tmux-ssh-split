@@ -190,7 +190,7 @@ get_ssh_command() {
     if [[ "$child_cmd" =~ ^(auto)?ssh ]]
     then
       # Filter out "ssh -W"
-      if ! grep -qE "ssh\s+-W" <<< "$child_cmd"
+      if ! grep -qE "ssh.*\s+-W\s+" <<< "$child_cmd"
       then
         echo "$child_cmd"
         return
