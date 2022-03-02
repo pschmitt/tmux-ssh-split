@@ -185,7 +185,7 @@ get_ssh_command() {
     return 3
   fi
 
-  ps -o command= -g "${pane_pid}" | while read -r child_cmd
+  ps -o pid=,ppid=,command= | grep "${pane_pid}" | awk '{$1="";$2="";print $0}' | while read -r child_cmd
   do
     if [[ "$child_cmd" =~ ^(auto)?ssh ]]
     then
