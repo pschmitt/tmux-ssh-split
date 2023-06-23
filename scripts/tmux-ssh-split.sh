@@ -169,6 +169,23 @@ extract_ssh_host() {
   return 1
 }
 
+get_child_cmds() {
+  local pid="$1"
+
+  # macOS
+  if [[ "$(uname -s)" == "Darwin" ]]
+  then
+    # Untested, contributed by @liuruibin
+    # https://github.com/pschmitt/tmux-ssh-split/pull/6
+    ps -o pid=,ppid=,command= | grep --color=never "${pid}" | \
+      awk '{$1="";$2="";print $0}'
+    return "$?"
+  fi
+
+  # Linux
+  ps -o command= -g "${pid}"
+}
+
 # $1 is optional, disable 2120
 # shellcheck disable=2120
 get_ssh_command() {
@@ -185,7 +202,7 @@ get_ssh_command() {
     return 3
   fi
 
-  ps -o pid=,ppid=,command= | grep "${pane_pid}" | awk '{$1="";$2="";print $0}' | while read -r child_cmd
+  get_child_cmds "$pane_pid" | while read -r child_cmd
   do
     if [[ "$child_cmd" =~ ^(auto)?ssh ]]
     then
