@@ -218,7 +218,7 @@ get_remote_cwd() {
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]
 then
-  SPLIT_ARGS=()
+  SPLIT_ARGS=(-e "TMUX_SSH_SPLIT=1")
 
   while [[ -n "$*" ]]
   do
@@ -299,7 +299,7 @@ then
     fi
 
     # Open default shell on exit (SSH timeout, Ctrl-C etc.)
-    start_cmd="trap ${default_shell} EXIT INT; $start_cmd"
+    start_cmd="trap 'TMUX_SSH_SPLIT=1 ${default_shell}' EXIT INT; $start_cmd"
   fi
 
   if [[ -n "$VERBOSE" ]]
