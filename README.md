@@ -6,7 +6,7 @@ This plugin builds upon the idea of [sshh](https://github.com/yudai/sshh/).
 It's essentially a modern version of the same idea.
 
 **TLDR**: This plugin allows doing seamless SSH splits. Ie if the current pane
-contains an SSH session and you hit the magic key the pane will be split 
+contains an SSH session and you hit the magic key the pane will be split
 and the newly spawned pane will host an SSH session to the host you were
 currently on. If no SSH session was running: do a normal split.
 
@@ -29,12 +29,12 @@ split.
 Other options include:
 
 - `@ssh-split-keep-cwd`: Whether to set the start directory of the new pane to
-the one from the current pane. This has essentially the same effect as 
+the one from the current pane. This has essentially the same effect as
 `tmux split -c "#{pane_current_path}"`.
-- `@ssh-split-fail`: Whether to not do anything if the current pane is *not* 
+- `@ssh-split-fail`: Whether to not do anything if the current pane is *not*
 running SSH. By default a normal split will be done.
 - `@ssh-split-no-shell`: If set to `true` this will disable the spawning of a
-shell session *after* the SSH session. This will make the pane exit when the 
+shell session *after* the SSH session. This will make the pane exit when the
 SSH session ends.
 - `@ssh-split-strip-cmd`: If set to `true` the SSH command executed in the new
 pane will be stripped of the remote command portion. Example: when splitting
@@ -75,9 +75,24 @@ I've sent [a PR to fix this](https://github.com/tmux-plugins/tmux-pain-control/p
 upstream. In the meantime you can
 [use my fork](https://github.com/pschmitt/tmux-pain-control/).
 
-To make the **forked** `tmux-pain-control` not bind the `|` key you can set 
+To make the **forked** `tmux-pain-control` not bind the `|` key you can set
 the following:
 
 ```
 set -g @disabled_keys "|"
+```
+
+## Tips & Tricks
+
+In case you want to be able to determine in a local, or remote split if the
+command has been spawned via tmux-ssh-split you can check for the
+`TMUX_SSH_SPLIT` env var. It should be set to `1` for all splits.
+
+If `TMUX_SSH_SPLIT` is not set on remote split please verify that
+`TMUX_SSH_SPLIT` is listed in the `AcceptEnv` property in your sshd config.
+
+Example:
+
+```
+AcceptEnv LANG LC_* TMUX_SSH_SPLIT
 ```
