@@ -53,7 +53,15 @@ __is_ssh_option() {
 }
 
 is_ssh_command() {
-  [[ "$1" =~ ^(auto)?ssh || "$1" =~ ^mosh ]]
+  [[ "$1" =~ ^(auto)?ssh ]]
+}
+
+is_mosh_command() {
+  grep -qE 'mosh-client' <<< "$1"
+}
+
+is_ssh_or_mosh_command() {
+  is_ssh_command "$1" || is_mosh_command "$1"
 }
 
 strip_command() {
@@ -69,7 +77,7 @@ strip_command() {
   fi
 
   # Return immediately if not processing an SSH command
-  if ! is_ssh_command "$1"
+  if ! is_ssh_or_mosh_command "$1"
   then
     return 1
   fi
@@ -175,7 +183,7 @@ extract_ssh_host() {
 
 # FIXME This might not be the most reliable host extraction
 extract_mosh_host() {
-  sed -nr 's/mosh-client -# ([^\s+])\s+.*/\1/p' <<< "$1"
+  sed -nr 's/.*mosh-client -# ([^\s+])\s+.*/\1/p' <<< "$1"
 }
 
 get_child_cmds() {
@@ -214,7 +222,7 @@ get_ssh_command() {
   local host
   get_child_cmds "$pane_pid" | while read -r child_cmd
   do
-    if is_ssh_command "$child_cmd"
+    if is_ssh_or_mosh_command "$child_cmd"
     then
       # Filter out "ssh -W"
       if grep -qE "ssh.*\s+-W\s+" <<< "$child_cmd"
@@ -223,7 +231,7 @@ get_ssh_command() {
       fi
       # mosh is a special case, the child command will look like this:
       # mosh-client -# hostname | 192.168.69.42 60001
-      if grep -qE "mosh-client" <<< "$child_cmd"
+      if is_mosh_command "$child_cmd"
       then
         host="$(extract_mosh_host "$child_cmd")"
         if [[ -z "$host" ]]
@@ -231,7 +239,7 @@ get_ssh_command() {
           echo "Could not extract hostname from mosh command: $child_cmd" >&2
           continue
         fi
-        child_cmd="mosh $host"
+        child_cmd="LC_ALL=en_US.UTF8 mosh $host"
       fi
 
       echo "$child_cmd"
