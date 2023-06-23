@@ -146,6 +146,22 @@ strip_command() {
   fi
 }
 
+inject_ssh_env() {
+  local cmd="$1"
+  if is_ssh_command "$cmd"
+  then
+    echo "$cmd -o SendEnv=TMUX_SSH_SPLIT"
+    return
+  fi
+
+  if is_mosh_command "$cmd"
+  then
+    echo "$cmd --ssh='ssh -o SendEnv=TMUX_SSH_SPLIT'"
+    return
+  fi
+  return 1
+}
+
 extract_ssh_host() {
   # Re-set the args in case the whole command is passed through "$1"
   if [[ "$#" -eq 1 ]]
@@ -356,6 +372,9 @@ then
     exit 0
   fi
 
+  # Inject -o SendEnv TMUX_SSH_SPLIT=1 into the SSH command
+  ssh_command="$(inject_ssh_env "$ssh_command")"
+
   start_cmd="$ssh_command"
 
   if [[ -z "$NO_SHELL" ]]
@@ -369,7 +388,7 @@ then
     fi
 
     # Open default shell on exit (SSH timeout, Ctrl-C etc.)
-    start_cmd="trap 'TMUX_SSH_SPLIT=1 ${default_shell}' EXIT INT; $start_cmd"
+    start_cmd="trap '${default_shell}' EXIT INT; $start_cmd"
   fi
 
   if [[ -n "$VERBOSE" ]]
