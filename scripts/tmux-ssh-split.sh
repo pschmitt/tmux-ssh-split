@@ -57,7 +57,7 @@ is_ssh_command() {
 }
 
 is_mosh_command() {
-  grep -qE 'mosh-client' <<< "$1"
+  grep -qE '(mosh)|(mosh-client) ' <<< "$1"
 }
 
 is_ssh_or_mosh_command() {
@@ -69,17 +69,17 @@ strip_command() {
   # ssh host.example.com -l root
   # It will remove the "-l root" part.
 
+  # Return immediately if not processing an SSH command
+  if ! is_ssh_command "$*"
+  then
+    return 1
+  fi
+
   # Re-set the args in case the whole command is passed through "$1"
   if [[ "$#" -eq 1 ]]
   then
     # shellcheck disable=2086
     set -- $1
-  fi
-
-  # Return immediately if not processing an SSH command
-  if ! is_ssh_or_mosh_command "$1"
-  then
-    return 1
   fi
 
   local og_args=("$@")
@@ -357,7 +357,13 @@ then
   ssh_command="$(get_ssh_command)"
   if [[ -n "$STRIP_CMD" ]]
   then
-    ssh_command="$(strip_command "$ssh_command")"
+    ssh_command_stripped="$(strip_command "$ssh_command")"
+    if [[ -z "$ssh_command_stripped" ]]
+    then
+      echo "Could not strip command: $ssh_command" >&2
+    else
+      ssh_command="$ssh_command_stripped"
+    fi
   fi
 
   if [[ -z "$ssh_command" ]]
