@@ -41,6 +41,7 @@ pane will be stripped of the remote command portion. Example: when splitting
 a pane where `ssh HOST COMMAND` is running this will make tmux-ssh-split create
 a new pane with a start command of `ssh HOST`. Default: `false`.
 - `@ssh-split-verbose`: Display a message when spawning the SSH shell.
+- `@ssh-split-debug`: Debug mode. Redirects the output of the script to `/tmp/tmux-ssh-split.log`
 
 ## Example config
 
@@ -50,6 +51,7 @@ set-option -g @ssh-split-fail "false"
 set-option -g @ssh-split-no-shell "false"
 set-option -g @ssh-split-strip-cmd "true"
 set-option -g @ssh-split-verbose "true"
+set-option -g @ssh-split-debug "false"
 set-option -g @ssh-split-h-key "|"
 set-option -g @ssh-split-v-key "S"
 

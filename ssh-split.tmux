@@ -18,6 +18,7 @@ main() {
   local noshell
   local script_path
   local verbose
+  local debug
   local vkey
 
   keep_cwd="$(get_tmux_option @ssh-split-keep-cwd)"
@@ -26,6 +27,7 @@ main() {
   stripcmd="$(get_tmux_option @ssh-split-strip-cmd)"
   noshell="$(get_tmux_option @ssh-split-no-shell)"
   verbose="$(get_tmux_option @ssh-split-verbose)"
+  debug="$(get_tmux_option @ssh-split-debug)"
   vkey="$(get_tmux_option @ssh-split-v-key)"
 
   case "$keep_cwd" in
@@ -58,6 +60,12 @@ main() {
   case "$verbose" in
     true|1|yes)
       extra_args+=(--verbose)
+      ;;
+  esac
+
+  case "$debug" in
+    true|1|yes)
+      extra_args+=(--debug)
       ;;
   esac
 

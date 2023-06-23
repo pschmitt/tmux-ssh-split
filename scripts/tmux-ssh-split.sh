@@ -220,6 +220,9 @@ get_ssh_command() {
   fi
 
   local host
+  # For debugging you can set the pane PID manually here
+  # to list tmux pane pids run: $ tmux list-panes -F '#{pane_pid}'
+  # pane_pid="1722114"
   get_child_cmds "$pane_pid" | while read -r child_cmd
   do
     if is_ssh_or_mosh_command "$child_cmd"
@@ -234,12 +237,14 @@ get_ssh_command() {
       if is_mosh_command "$child_cmd"
       then
         host="$(extract_mosh_host "$child_cmd")"
+
         if [[ -z "$host" ]]
         then
           echo "Could not extract hostname from mosh command: $child_cmd" >&2
           continue
         fi
-        child_cmd="LC_ALL=en_US.UTF8 mosh $host"
+
+        child_cmd="LC_ALL=en_US.UTF-8 mosh $host"
       fi
 
       echo "$child_cmd"
@@ -275,6 +280,10 @@ then
       help|h|--help)
         usage
         exit 0
+        ;;
+      --debug|-D)
+        DEBUG=1
+        shift
         ;;
       -h|-v)
         SPLIT_ARGS+=("$1")
@@ -316,6 +325,18 @@ then
         ;;
     esac
   done
+
+  if [[ -n "$DEBUG" ]]
+  then
+    set -x
+
+    # Write debug output to file if not running in a terminal
+    if [[ ! -t 0 ]]
+    then
+      exec >> "${TMPDIR:-/tmp}/tmux-ssh-split.log"
+      exec 2>&1
+    fi
+  fi
 
   ssh_command="$(get_ssh_command)"
   if [[ -n "$STRIP_CMD" ]]
