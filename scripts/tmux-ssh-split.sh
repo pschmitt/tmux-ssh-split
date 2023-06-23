@@ -29,7 +29,7 @@ __is_ssh_option() {
   # 1: shift 1 (optionless flags)
   # 2: shift 2 (flags with mandatory options)
   case "$1" in
-    autossh|ssh)
+    autossh|ssh|mosh)
       echo "1"
       ;;
     # Optionless flags (can be combined - hence the "*"
@@ -52,6 +52,10 @@ __is_ssh_option() {
   esac
 }
 
+is_ssh_command() {
+  [[ "$1" =~ ^(auto)?ssh || "$1" =~ ^mosh ]]
+}
+
 strip_command() {
   # FIXME This won't work for commands like the followin:
   # ssh host.example.com -l root
@@ -65,7 +69,7 @@ strip_command() {
   fi
 
   # Return immediately if not processing an SSH command
-  if ! [[ "$1" =~ ^(auto)?ssh ]]
+  if ! is_ssh_command "$1"
   then
     return 1
   fi
@@ -169,6 +173,11 @@ extract_ssh_host() {
   return 1
 }
 
+# FIXME This might not be the most reliable host extraction
+extract_mosh_host() {
+  sed -nr 's/mosh-client -# ([^\s+])\s+.*/\1/p' <<< "$1"
+}
+
 get_child_cmds() {
   local pid="$1"
 
@@ -202,16 +211,31 @@ get_ssh_command() {
     return 3
   fi
 
+  local host
   get_child_cmds "$pane_pid" | while read -r child_cmd
   do
-    if [[ "$child_cmd" =~ ^(auto)?ssh ]]
+    if is_ssh_command "$child_cmd"
     then
       # Filter out "ssh -W"
-      if ! grep -qE "ssh.*\s+-W\s+" <<< "$child_cmd"
+      if grep -qE "ssh.*\s+-W\s+" <<< "$child_cmd"
       then
-        echo "$child_cmd"
-        return
+        continue
       fi
+      # mosh is a special case, the child command will look like this:
+      # mosh-client -# hostname | 192.168.69.42 60001
+      if grep -qE "mosh-client" <<< "$child_cmd"
+      then
+        host="$(extract_mosh_host "$child_cmd")"
+        if [[ -z "$host" ]]
+        then
+          echo "Could not extract hostname from mosh command: $child_cmd" >&2
+          continue
+        fi
+        child_cmd="mosh $host"
+      fi
+
+      echo "$child_cmd"
+      return
     fi
   done
 
