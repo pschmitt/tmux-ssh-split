@@ -150,13 +150,13 @@ inject_ssh_env() {
   local cmd="$1"
   if is_ssh_command "$cmd"
   then
-    echo "$cmd -o SendEnv=TMUX_SSH_SPLIT"
+    sed 's#ssh#ssh -o SendEnv=TMUX_SSH_SPLIT#' <<< "$cmd"
     return
   fi
 
   if is_mosh_command "$cmd"
   then
-    echo "$cmd --ssh='ssh -o SendEnv=TMUX_SSH_SPLIT'"
+    sed "s#mosh#mosh --ssh='ssh -o SendEnv=TMUX_SSH_SPLIT'#" <<< "$cmd"
     return
   fi
   return 1
@@ -286,6 +286,38 @@ get_remote_cwd() {
   return 1
 }
 
+guess_remote_shell() {
+  if [[ "$#" -eq 1 ]]
+  then
+    # shellcheck disable=2086
+    set -- $1
+  fi
+
+  is_ssh_or_mosh_command "$@" && shift
+  ssh $@ 'echo $SHELL'
+}
+
+extract_path_from_ps1() {
+  local line=$(tmux capture-pane -p | sed '/^$/d' | tail -1)
+  local match
+
+  if match=$(grep -m 1 -oP '/\K[^ ]*' <<< "$line")
+  then
+    [[ ! $match = /* ]] && match="/$match"
+    echo "$match"
+    return
+  fi
+
+  if match=$(grep -m 1 -oP '~[^\s]+' <<< "$line")
+  then
+    echo "$match"
+    return
+  fi
+
+  echo "Failed to extract path from PS1" >&2
+  return 1
+}
+
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]
 then
   SPLIT_ARGS=(-e "TMUX_SSH_SPLIT=1")
@@ -355,16 +387,6 @@ then
   fi
 
   ssh_command="$(get_ssh_command)"
-  if [[ -n "$STRIP_CMD" ]]
-  then
-    ssh_command_stripped="$(strip_command "$ssh_command")"
-    if [[ -z "$ssh_command_stripped" ]]
-    then
-      echo "Could not strip command: $ssh_command" >&2
-    else
-      ssh_command="$ssh_command_stripped"
-    fi
-  fi
 
   if [[ -z "$ssh_command" ]]
   then
@@ -376,6 +398,25 @@ then
       tmux split "${SPLIT_ARGS[@]}"
     fi
     exit 0
+  fi
+
+  ssh_command_stripped="$(strip_command "$ssh_command")"
+  if [[ -z "$ssh_command_stripped" ]]
+  then
+    echo "Could not strip command: $ssh_command" >&2
+  fi
+
+  if [[ -n "$STRIP_CMD" ]] && [[ -n "$ssh_command_stripped" ]]
+  then
+    ssh_command="$ssh_command_stripped"
+  fi
+
+  # Experimental
+  # ssh_shell="$(guess_remote_shell "$ssh_command")"
+  ssh_cwd="$(extract_path_from_ps1)"
+  if [[ -n "$ssh_cwd" ]]
+  then
+    ssh_command="$ssh_command -t 'cd \\"${ssh_cwd}\\"; exec \$SHELL'"
   fi
 
   # Inject -o SendEnv TMUX_SSH_SPLIT=1 into the SSH command
