@@ -311,8 +311,10 @@ extract_path_from_ps1() {
   # Search for paths
   if match=$(grep -m 1 -oP '/\K[^ ]*' <<< "$line")
   then
+    # Add leading slash if missing
     [[ ! $match = /* ]] && match="/$match"
-    echo "$match"
+    # Remove trailing $ or # (bash prompt char)
+    sed 's/[$#]$//' <<< "${match}"
     return
   fi
 
