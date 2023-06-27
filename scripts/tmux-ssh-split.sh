@@ -416,7 +416,7 @@ then
   ssh_cwd="$(extract_path_from_ps1)"
   if [[ -n "$ssh_cwd" ]]
   then
-    ssh_command="$ssh_command -t 'cd \\"${ssh_cwd}\\"; exec \$SHELL'"
+    ssh_command="$ssh_command -t 'cd "${ssh_cwd}"; exec \$SHELL'"
   fi
 
   # Inject -o SendEnv TMUX_SSH_SPLIT=1 into the SSH command
@@ -440,7 +440,9 @@ then
 
   if [[ -n "$VERBOSE" ]]
   then
-    start_cmd="echo '🧙👉 Running \"$ssh_command\"'; $start_cmd"
+    # Escape single quotes in the command
+    ssh_command_escaped=${ssh_command//\'/\'\\\'\'}
+    start_cmd="echo '🧙👉 Running \"${ssh_command_escaped}\"'; $start_cmd"
   fi
 
   # Spawn a new shell after the ssh command to keep the pane alive
