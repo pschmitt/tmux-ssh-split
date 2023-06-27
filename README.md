@@ -1,4 +1,4 @@
-# 🎛️ TMUX SSH Split Plugin
+# 🎛️ TMUX SSH Split
 
 [![](./tmux-ssh-split.gif)](https://asciinema.org/a/335250)
 
