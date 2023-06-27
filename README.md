@@ -29,6 +29,7 @@ vertical split, respectively.
 | `@ssh-split-keep-cwd` | Determines whether the starting directory of the new pane should be the same as the current pane. This is similar to executing `tmux split -c "#{pane_current_path}"`. | `false` |
 | `@ssh-split-keep-remote-cwd` | Similar to the above, but for remote (SSH) splits. Note that remote path detection depends on PS1 parsing, so it won't work if your prompt doesn't contain the current path. | `false` |
 | `@ssh-split-fail` | Determines whether to do nothing if the current pane isn't running SSH. By default, a normal split will occur. | `false` |
+| `@ssh-split-no-env` | If set to true, this will not set `TMUX_SSH_SPLIT=1` in splits (see tips and tricks section) | `false` |
 | `@ssh-split-no-shell` | If set to true, this will prevent a shell session from spawning after the SSH session, causing the pane to exit when the SSH session ends. | `false` |
 | `@ssh-split-strip-cmd` | If set to true, the SSH command executed in the new pane will be stripped of the remote command portion. For example, if you're running `ssh HOST COMMAND` in a pane and you split it, tmux-ssh-split will create a new pane with a start command of `ssh HOST`. | `false` |
 | `@ssh-split-verbose` | Displays a message before the SSH command is spawned with the command being executed | `false` |
@@ -76,12 +77,18 @@ set -g @disabled_keys "|"
 
 If you want to determine whether a command has been spawned via tmux-ssh-split
 in a local or remote split, you can check for the `TMUX_SSH_SPLIT` environment
-variable. It should be set to 1 for all splits. If `TMUX_SSH_SPLIT` is not set
-on remote split, ensure that `TMUX_SSH_SPLIT` is listed in the `AcceptEnv`
+variable. It should be set to `1` for all splits. If `TMUX_SSH_SPLIT` is not set
+on remote splits, ensure that `TMUX_SSH_SPLIT` is listed in the `AcceptEnv`
 property in your sshd config. For example:
 
 ```
 AcceptEnv LANG LC_* TMUX_SSH_SPLIT
+```
+
+🤚 If you want to disable this feature add the following to your TMUX config:
+
+```
+set-option -g @ssh-split-no-env "true"
 ```
 
 ## 📜 License

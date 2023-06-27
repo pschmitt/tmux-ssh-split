@@ -324,8 +324,6 @@ extract_path_from_ps1() {
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]
 then
-  SPLIT_ARGS=(-e "TMUX_SSH_SPLIT=1")
-
   while [[ -n "$*" ]]
   do
     case "$1" in
@@ -363,8 +361,12 @@ then
         FAIL=1
         shift
         ;;
-      --no-shell|-n)
+      --no-shell|--noshell|-n)
         NO_SHELL=1
+        shift
+        ;;
+      --no-env|--noenv)
+        NO_ENV=1
         shift
         ;;
       --verbose|-V)
@@ -392,6 +394,11 @@ then
       exec >> "${TMPDIR:-/tmp}/tmux-ssh-split.log"
       exec 2>&1
     fi
+  fi
+
+  if [[ -z "$NO_ENV" ]]
+  then
+    SPLIT_ARGS=(-e "TMUX_SSH_SPLIT=1")
   fi
 
   ssh_command="$(get_ssh_command)"
@@ -430,8 +437,11 @@ then
     fi
   fi
 
-  # Inject -o SendEnv TMUX_SSH_SPLIT=1 into the SSH command
-  ssh_command="$(inject_ssh_env "$ssh_command")"
+  if [[ -z "$NO_ENV" ]]
+  then
+    # Inject -o SendEnv TMUX_SSH_SPLIT=1 into the SSH command
+    ssh_command="$(inject_ssh_env "$ssh_command")"
+  fi
 
   start_cmd="$ssh_command"
 

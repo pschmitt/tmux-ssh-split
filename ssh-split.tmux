@@ -15,6 +15,7 @@ main() {
   local current_dir
   local fail
   local hkey
+  local noenv
   local noshell
   local script_path
   local verbose
@@ -28,6 +29,7 @@ main() {
   fail="$(get_tmux_option @ssh-split-fail)"
   hkey="$(get_tmux_option @ssh-split-h-key)"
   stripcmd="$(get_tmux_option @ssh-split-strip-cmd)"
+  noenv="$(get_tmux_option @ssh-split-no-env)"
   noshell="$(get_tmux_option @ssh-split-no-shell)"
   verbose="$(get_tmux_option @ssh-split-verbose)"
   debug="$(get_tmux_option @ssh-split-debug)"
@@ -51,6 +53,12 @@ main() {
   case "$fail" in
     true|1|yes)
       extra_args+=(--fail)
+      ;;
+  esac
+
+  case "$noenv" in
+    true|1|yes)
+      extra_args+=(--no-env)
       ;;
   esac
 
