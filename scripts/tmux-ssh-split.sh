@@ -351,6 +351,10 @@ then
         fi
         shift 2
         ;;
+      --keep-remote-cwd)
+        KEEP_REMOTE_CWD=1
+        shift
+        ;;
       --fail)
         FAIL=1
         shift
@@ -412,11 +416,14 @@ then
   fi
 
   # Experimental
-  # ssh_shell="$(guess_remote_shell "$ssh_command")"
-  ssh_cwd="$(extract_path_from_ps1)"
-  if [[ -n "$ssh_cwd" ]]
+  if [[ -n "$KEEP_REMOTE_CWD" ]]
   then
-    ssh_command="$ssh_command -t 'cd "${ssh_cwd}"; exec \$SHELL'"
+    ssh_cwd="$(extract_path_from_ps1)"
+
+    if [[ -n "$ssh_cwd" ]]
+    then
+      ssh_command="$ssh_command -t 'cd "${ssh_cwd}"; exec \$SHELL'"
+    fi
   fi
 
   # Inject -o SendEnv TMUX_SSH_SPLIT=1 into the SSH command

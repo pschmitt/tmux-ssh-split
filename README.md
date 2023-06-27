@@ -31,6 +31,9 @@ Other options include:
 - `@ssh-split-keep-cwd`: Whether to set the start directory of the new pane to
 the one from the current pane. This has essentially the same effect as
 `tmux split -c "#{pane_current_path}"`.
+- `@ssh-split-keep-remote-cwd`: Same as above, except for remote (ssh) splits.
+Please be aware that the remote path detection relies on PS1 parsing, so this
+won't work if your prompt does not contain the current path.
 - `@ssh-split-fail`: Whether to not do anything if the current pane is *not*
 running SSH. By default a normal split will be done.
 - `@ssh-split-no-shell`: If set to `true` this will disable the spawning of a
@@ -47,6 +50,7 @@ a new pane with a start command of `ssh HOST`. Default: `false`.
 
 ```
 set-option -g @ssh-split-keep-cwd "true"
+set-option -g @ssh-split-keep-remote-cwd "true"
 set-option -g @ssh-split-fail "false"
 set-option -g @ssh-split-no-shell "false"
 set-option -g @ssh-split-strip-cmd "true"

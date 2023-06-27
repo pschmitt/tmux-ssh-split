@@ -20,8 +20,11 @@ main() {
   local verbose
   local debug
   local vkey
+  local keep_cwd
+  local keep_remote_cwd
 
   keep_cwd="$(get_tmux_option @ssh-split-keep-cwd)"
+  keep_remote_cwd="$(get_tmux_option @ssh-split-keep-remote-cwd)"
   fail="$(get_tmux_option @ssh-split-fail)"
   hkey="$(get_tmux_option @ssh-split-h-key)"
   stripcmd="$(get_tmux_option @ssh-split-strip-cmd)"
@@ -36,6 +39,12 @@ main() {
       # Especially when the current dir gets deleted, tmux then
       # appends " (removed)"
       extra_args+=(-c "'#{pane_current_path}'")
+      ;;
+  esac
+
+  case "$keep_remote_cwd" in
+    true|1|yes)
+      extra_args+=(--keep-remote-cwd)
       ;;
   esac
 
