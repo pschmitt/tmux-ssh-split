@@ -41,6 +41,7 @@ vertical split, respectively.
 set-option -g @ssh-split-keep-cwd "true"
 set-option -g @ssh-split-keep-remote-cwd "true"
 set-option -g @ssh-split-fail "false"
+set-option -g @ssh-split-no-env "false"
 set-option -g @ssh-split-no-shell "false"
 set-option -g @ssh-split-strip-cmd "true"
 set-option -g @ssh-split-verbose "true"
