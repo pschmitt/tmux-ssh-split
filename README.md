@@ -12,6 +12,8 @@ key combination, the pane will split, and the newly created pane will host an
 SSH session connected to the host you were previously on. If there's no active
 SSH session, a regular split will occur.
 
+NOTE: mosh should work too to some extent  (it's somewhat experimental)
+
 ## 📥 Installation
 
 You can install this plugin using [TPM](https://github.com/tmux-plugins/tpm):
