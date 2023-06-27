@@ -10,7 +10,7 @@ a regular split will occur.
 
 ## 📥 Installation
 
-You can install this plugin using TPM:
+You can install this plugin using [TPM](https://github.com/tmux-plugins/tpm):
 
 ```
 set -g @plugin 'pschmitt/tmux-ssh-split'
@@ -31,7 +31,7 @@ vertical split, respectively.
 | `@ssh-split-fail` | Determines whether to do nothing if the current pane isn't running SSH. By default, a normal split will occur. | `false` |
 | `@ssh-split-no-shell` | If set to true, this will prevent a shell session from spawning after the SSH session, causing the pane to exit when the SSH session ends. | `false` |
 | `@ssh-split-strip-cmd` | If set to true, the SSH command executed in the new pane will be stripped of the remote command portion. For example, if you're running `ssh HOST COMMAND` in a pane and you split it, tmux-ssh-split will create a new pane with a start command of `ssh HOST`. | `false` |
-| `@ssh-split-verbose` | Displays a message when the SSH shell is spawned. | `false` |
+| `@ssh-split-verbose` | Displays a message before the SSH command is spawned with the command being executed | `false` |
 | `@ssh-split-debug` | Debug mode. Redirects the script output to `/tmp/tmux-ssh-split.log`. | `false` |
 
 ### 💡 Example config
