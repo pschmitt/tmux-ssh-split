@@ -27,7 +27,7 @@ vertical split, respectively.
 | Option | Description | Default Value |
 | --- | --- | --- |
 | `@ssh-split-keep-cwd` | Determines whether the starting directory of the new pane should be the same as the current pane. This is similar to executing `tmux split -c "#{pane_current_path}"`. | `false` |
-| `@ssh-split-keep-remote-cwd` | Similar to the above, but for remote (SSH) splits. Note that remote path detection depends on PS1 parsing, so it won't work if your prompt doesn't contain the current path. | `false` |
+| `@ssh-split-keep-remote-cwd` | Similar to the above, but for remote (SSH) splits. Note that remote path detection depends on PS1 parsing, so it won't work if your prompt doesn't contain the current path. This works best with `@ssh-split-strip-cmd=true` | `false` |
 | `@ssh-split-fail` | Determines whether to do nothing if the current pane isn't running SSH. By default, a normal split will occur. | `false` |
 | `@ssh-split-no-env` | If set to true, this will not set `TMUX_SSH_SPLIT=1` in splits (see tips and tricks section) | `false` |
 | `@ssh-split-no-shell` | If set to true, this will prevent a shell session from spawning after the SSH session, causing the pane to exit when the SSH session ends. | `false` |
