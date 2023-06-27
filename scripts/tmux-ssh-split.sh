@@ -301,15 +301,17 @@ extract_path_from_ps1() {
   local line=$(tmux capture-pane -p | sed '/^$/d' | tail -1)
   local match
 
-  if match=$(grep -m 1 -oP '/\K[^ ]*' <<< "$line")
+  # Search for zsh hash dirs (eg: ~zsh/bin)
+  if match=$(grep -m 1 -oP '~[^\s]+' <<< "$line")
   then
-    [[ ! $match = /* ]] && match="/$match"
     echo "$match"
     return
   fi
 
-  if match=$(grep -m 1 -oP '~[^\s]+' <<< "$line")
+  # Search for paths
+  if match=$(grep -m 1 -oP '/\K[^ ]*' <<< "$line")
   then
+    [[ ! $match = /* ]] && match="/$match"
     echo "$match"
     return
   fi
