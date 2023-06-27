@@ -2,11 +2,15 @@
 
 [![](./tmux-ssh-split.gif)](https://asciinema.org/a/335250)
 
-This plugin is a modern iteration of the sshh concept. It enables seamless SSH
+This TMUX plugin is a modern iteration of the concept
+[sshh](https://github.com/yudai/sshh)
+introduced.
+
+It enables seamless SSH
 splits. If you're in an SSH session in the current pane and press the designated
-key, the pane will split, and the newly created pane will host an SSH session
-connected to the host you were previously on. If there's no active SSH session,
-a regular split will occur.
+key combination, the pane will split, and the newly created pane will host an
+SSH session connected to the host you were previously on. If there's no active
+SSH session, a regular split will occur.
 
 ## 📥 Installation
 
