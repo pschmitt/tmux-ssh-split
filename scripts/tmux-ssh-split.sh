@@ -304,7 +304,8 @@ extract_path_from_ps1() {
   # Search for zsh hash dirs (eg: ~zsh/bin)
   if match=$(grep -m 1 -oP '~[^\s]+' <<< "$line")
   then
-    echo "$match"
+    # Remove trailing $ or # (bash prompt char)
+    sed 's/[$#]$//' <<< "${match}"
     return
   fi
 
