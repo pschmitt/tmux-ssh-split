@@ -34,6 +34,7 @@ horizontal and vertical splits, respectively.
 | --- | --- | --- |
 | `@ssh-split-h-key` | Key to bind for horizontal splits (prefixed) | *none* |
 | `@ssh-split-v-key` | Key to bind for vertical splits (prefixed) | *none* |
+| `@ssh-split-w-key` | Key to bind for new windows (prefixed) | *none* |
 | `@ssh-split-keep-cwd` | Determines whether the starting directory of the new pane should be the same as the current pane. This is similar to executing `tmux split -c "#{pane_current_path}"`. | `false` |
 | `@ssh-split-keep-remote-cwd` | Similar to the above, but for remote (SSH) splits. Note that remote path detection depends on PS1 parsing, so it won't work if your prompt doesn't contain the current path. This works best with `@ssh-split-strip-cmd=true` | `false` |
 | `@ssh-split-fail` | Determines whether to do nothing if the current pane isn't running SSH. By default, a normal split will occur. | `false` |
@@ -56,6 +57,7 @@ set-option -g @ssh-split-verbose "true"
 set-option -g @ssh-split-debug "false"
 set-option -g @ssh-split-h-key "|"
 set-option -g @ssh-split-v-key "S"
+set-option -g @ssh-split-w-key "C"
 
 set -g @plugin 'pschmitt/tmux-ssh-split'
 ```

@@ -339,6 +339,10 @@ then
         SPLIT_ARGS+=("$1")
         shift
         ;;
+      -w|--window)
+        WINDOW=1
+        shift
+        ;;
       -c)
         if [[ -z "$2" ]]
         then
@@ -466,8 +470,16 @@ then
     start_cmd="echo '🧙👉 Running \"${ssh_command_escaped}\"'; $start_cmd"
   fi
 
-  # Spawn a new shell after the ssh command to keep the pane alive
-  tmux split "${SPLIT_ARGS[@]}" "$start_cmd"
+  if [[ -n "$WINDOW" ]]
+  then
+    # remove -h and -v from split args
+    SPLIT_ARGS=("${SPLIT_ARGS[@]/-h}")
+    SPLIT_ARGS=("${SPLIT_ARGS[@]/-v}")
+
+    tmux new-window "${SPLIT_ARGS[@]}" "$start_cmd"
+  else
+    tmux split "${SPLIT_ARGS[@]}" "$start_cmd"
+  fi
 fi
 
 # vim: set ft=bash et ts=2 sw=2 :

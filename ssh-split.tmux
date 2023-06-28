@@ -21,19 +21,21 @@ main() {
   local verbose
   local debug
   local vkey
+  local wkey
   local keep_cwd
   local keep_remote_cwd
 
+  debug="$(get_tmux_option @ssh-split-debug)"
+  verbose="$(get_tmux_option @ssh-split-verbose)"
+  fail="$(get_tmux_option @ssh-split-fail)"
   keep_cwd="$(get_tmux_option @ssh-split-keep-cwd)"
   keep_remote_cwd="$(get_tmux_option @ssh-split-keep-remote-cwd)"
-  fail="$(get_tmux_option @ssh-split-fail)"
-  hkey="$(get_tmux_option @ssh-split-h-key)"
-  stripcmd="$(get_tmux_option @ssh-split-strip-cmd)"
   noenv="$(get_tmux_option @ssh-split-no-env)"
   noshell="$(get_tmux_option @ssh-split-no-shell)"
-  verbose="$(get_tmux_option @ssh-split-verbose)"
-  debug="$(get_tmux_option @ssh-split-debug)"
+  stripcmd="$(get_tmux_option @ssh-split-strip-cmd)"
+  hkey="$(get_tmux_option @ssh-split-h-key)"
   vkey="$(get_tmux_option @ssh-split-v-key)"
+  wkey="$(get_tmux_option @ssh-split-w-key)"
 
   case "$keep_cwd" in
     true|1|yes)
@@ -99,6 +101,12 @@ main() {
   then
     tmux unbind "$vkey"
     tmux bind-key "$vkey" run "${script_path} ${extra_args[*]} -v"
+  fi
+
+  if [[ -n "$wkey" ]]
+  then
+    tmux unbind "$wkey"
+    tmux bind-key "$wkey" run "${script_path} ${extra_args[*]} --window"
   fi
 }
 
