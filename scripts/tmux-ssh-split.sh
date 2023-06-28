@@ -437,7 +437,8 @@ then
 
     if [[ -n "$ssh_cwd" ]]
     then
-      ssh_command="$ssh_command -t 'cd "${ssh_cwd}"; exec \$SHELL'"
+      parent_cwd="${ssh_cwd%/*}"
+      ssh_command="$ssh_command -t 'cd "${ssh_cwd}" 2>/dev/null || cd "${parent_cwd}"; exec \$SHELL'"
     fi
   fi
 
