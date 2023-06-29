@@ -162,6 +162,29 @@ inject_ssh_env() {
   return 1
 }
 
+inject_remote_cwd() {
+  local ssh_command="$1"
+  local ssh_cwd="$(extract_path_from_ps1)"
+
+  if [[ -n "$ssh_cwd" ]]
+  then
+    local parent_cwd="${ssh_cwd%/*}"
+    local remote_command=(
+      "cd \"${ssh_cwd}\" 2>/dev/null || "
+      "cd \"${parent_cwd}\"; exec \$SHELL"
+    )
+
+    if is_mosh_command "$ssh_command"
+    then
+      ssh_command="$ssh_command -- sh -c '${remote_command[*]}'"
+    else
+      ssh_command="$ssh_command -t '${remote_command[*]}'"
+    fi
+  fi
+
+  echo "$ssh_command"
+}
+
 extract_ssh_host() {
   # Re-set the args in case the whole command is passed through "$1"
   if [[ "$#" -eq 1 ]]
@@ -406,9 +429,9 @@ then
     SPLIT_ARGS=(-e "TMUX_SSH_SPLIT=1")
   fi
 
-  ssh_command="$(get_ssh_command)"
+  SSH_COMMAND="$(get_ssh_command)"
 
-  if [[ -z "$ssh_command" ]]
+  if [[ -z "$SSH_COMMAND" ]]
   then
     if [[ -n "$FAIL" ]]
     then
@@ -420,61 +443,51 @@ then
     exit 0
   fi
 
-  ssh_command_stripped="$(strip_command "$ssh_command")"
-  if [[ -z "$ssh_command_stripped" ]]
+  if [[ -n "$STRIP_CMD" ]]
   then
-    echo "Could not strip command: $ssh_command" >&2
-  fi
+    SSH_COMMAND_STRIPPED="$(strip_command "$SSH_COMMAND")"
 
-  if [[ -n "$STRIP_CMD" ]] && [[ -n "$ssh_command_stripped" ]]
-  then
-    ssh_command="$ssh_command_stripped"
+    if [[ -z "$SSH_COMMAND_STRIPPED" ]]
+    then
+      echo "Could not strip command: $SSH_COMMAND" >&2
+    else
+      SSH_COMMAND="$SSH_COMMAND_STRIPPED"
+    fi
   fi
 
   # Experimental
   if [[ -n "$KEEP_REMOTE_CWD" ]]
   then
-    ssh_cwd="$(extract_path_from_ps1)"
-
-    if [[ -n "$ssh_cwd" ]]
-    then
-      parent_cwd="${ssh_cwd%/*}"
-      if is_mosh_command "$ssh_command"
-      then
-        ssh_command="$ssh_command -- sh -c 'cd "${ssh_cwd}" 2>/dev/null || cd "${parent_cwd}"; exec \$SHELL'"
-      else
-        ssh_command="$ssh_command -t 'cd "${ssh_cwd}" 2>/dev/null || cd "${parent_cwd}"; exec \$SHELL'"
-      fi
-    fi
+    SSH_COMMAND="$(inject_remote_cwd "$SSH_COMMAND")"
   fi
 
   if [[ -z "$NO_ENV" ]]
   then
     # Inject -o SendEnv TMUX_SSH_SPLIT=1 into the SSH command
-    ssh_command="$(inject_ssh_env "$ssh_command")"
+    SSH_COMMAND="$(inject_ssh_env "$SSH_COMMAND")"
   fi
 
-  start_cmd="$ssh_command"
+  START_CMD="$SSH_COMMAND"
 
   if [[ -z "$NO_SHELL" ]]
   then
-    default_shell="$(tmux show-option -gqv "default-shell")"
+    DEFAULT_SHELL="$(tmux show-option -gqv "default-shell")"
 
-    if [[ -z "$default_shell" ]]
+    if [[ -z "$DEFAULT_SHELL" ]]
     then
       # Fall back to sh
-      default_shell="$(command -v sh)"
+      DEFAULT_SHELL="$(command -v sh)"
     fi
 
     # Open default shell on exit (SSH timeout, Ctrl-C etc.)
-    start_cmd="trap '${default_shell}' EXIT INT; $start_cmd"
+    START_CMD="trap '${DEFAULT_SHELL}' EXIT INT; ${START_CMD}"
   fi
 
   if [[ -n "$VERBOSE" ]]
   then
     # Escape single quotes in the command
-    ssh_command_escaped=${ssh_command//\'/\'\\\'\'}
-    start_cmd="echo '🧙👉 Running \"${ssh_command_escaped}\"'; $start_cmd"
+    SSH_COMMAND_ESCAPED=${SSH_COMMAND//\'/\'\\\'\'}
+    START_CMD="echo '🧙👉 Running \"${SSH_COMMAND_ESCAPED}\"'; ${START_CMD}"
   fi
 
   if [[ -n "$WINDOW" ]]
@@ -483,9 +496,9 @@ then
     SPLIT_ARGS=("${SPLIT_ARGS[@]/-h}")
     SPLIT_ARGS=("${SPLIT_ARGS[@]/-v}")
 
-    tmux new-window "${SPLIT_ARGS[@]}" "$start_cmd"
+    tmux new-window "${SPLIT_ARGS[@]}" "$START_CMD"
   else
-    tmux split "${SPLIT_ARGS[@]}" "$start_cmd"
+    tmux split "${SPLIT_ARGS[@]}" "$START_CMD"
   fi
 fi
 
