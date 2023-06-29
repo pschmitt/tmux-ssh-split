@@ -260,7 +260,7 @@ get_ssh_command() {
           continue
         fi
 
-        child_cmd="LC_ALL=en_US.UTF-8 mosh $host"
+        child_cmd="LC_ALL=${LC_ALL:-en_US.UTF-8} mosh $host"
       fi
 
       echo "$child_cmd"
@@ -439,7 +439,12 @@ then
     if [[ -n "$ssh_cwd" ]]
     then
       parent_cwd="${ssh_cwd%/*}"
-      ssh_command="$ssh_command -t 'cd "${ssh_cwd}" 2>/dev/null || cd "${parent_cwd}"; exec \$SHELL'"
+      if is_mosh_command "$ssh_command"
+      then
+        ssh_command="$ssh_command -- sh -c 'cd "${ssh_cwd}" 2>/dev/null || cd "${parent_cwd}"; exec \$SHELL'"
+      else
+        ssh_command="$ssh_command -t 'cd "${ssh_cwd}" 2>/dev/null || cd "${parent_cwd}"; exec \$SHELL'"
+      fi
     fi
   fi
 
