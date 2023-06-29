@@ -166,8 +166,10 @@ inject_remote_cwd() {
   local ssh_command="$1"
   local ssh_cwd="$(extract_path_from_ps1)"
 
-  if [[ -n "$ssh_cwd" ]]
+  if [[ -z "$ssh_cwd" ]]
   then
+    echo "Failed to extract remote cwd from PS1" >&2
+  else
     local parent_cwd="${ssh_cwd%/*}"
     local remote_command=(
       "cd \"${ssh_cwd}\" 2>/dev/null || "
