@@ -329,6 +329,11 @@ extract_path_from_ps1() {
   # Search for zsh hash dirs (eg: ~zsh/bin)
   if match=$(grep -m 1 -oP '~[^\s]+' <<< "$line")
   then
+    if [[ "$match" == '~' || "$match" == '~/' ]]
+    then
+      echo "Current dir seems to be '~', ignoring since it probably the default anyway" >&2
+      return
+    fi
     # Remove trailing $ or # (bash prompt char)
     sed 's/[$#]$//' <<< "${match}"
     return
