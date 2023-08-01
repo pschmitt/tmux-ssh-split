@@ -345,7 +345,8 @@ extract_path_from_ps1() {
     # Add leading slash if missing
     [[ ! $match = /* ]] && match="/$match"
     # Remove trailing $ or # (bash prompt char)
-    sed 's/[$#]$//' <<< "${match}"
+    # Remove quotes (eg: ' or ")
+    sed -e 's/[$#]$//' -e "s#['\"]*##g" <<< "${match}"
     return
   fi
 
