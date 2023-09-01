@@ -434,7 +434,7 @@ then
 
   if [[ -z "$NO_ENV" ]]
   then
-    SPLIT_ARGS=(-e "TMUX_SSH_SPLIT=1")
+    SPLIT_ARGS+=(-e "TMUX_SSH_SPLIT=1")
   fi
 
   SSH_COMMAND="$(get_ssh_command)"
