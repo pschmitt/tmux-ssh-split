@@ -446,7 +446,16 @@ then
       tmux display "Error: current pane seems to not be running SSH..."
       echo "Could not determine SSH command" >&2
     else
-      tmux split "${SPLIT_ARGS[@]}"
+      if [[ -n "$WINDOW" ]]
+      then
+        # remove -h and -v from split args
+        SPLIT_ARGS=("${SPLIT_ARGS[@]/-h}")
+        SPLIT_ARGS=("${SPLIT_ARGS[@]/-v}")
+
+        tmux new-window "${SPLIT_ARGS[@]}"
+      else
+        tmux split "${SPLIT_ARGS[@]}"
+      fi
     fi
     exit 0
   fi
