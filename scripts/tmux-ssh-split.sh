@@ -164,7 +164,7 @@ inject_ssh_env() {
 
 inject_remote_cwd() {
   local ssh_command="$1"
-  local ssh_cwd="$(extract_path_from_ps1)"
+  local ssh_cwd="$(get_remote_path)"
 
   if [[ -z "$ssh_cwd" ]]
   then
@@ -320,6 +320,31 @@ guess_remote_shell() {
 
   is_ssh_or_mosh_command "$@" && shift
   ssh $@ 'echo $SHELL'
+}
+
+# Below requires vte shell integration aka osc7
+get_pane_path_osc7() {
+  # pane_path returns "file://myhost/home/pschmitt" where myhost is the
+  # hostname and the rest the path
+  tmux display -pF '#{pane_path}' | \
+    sed -nr 's#file://([^/]+)(/.*)#\2#p'
+}
+
+get_remote_path() {
+  local remote_path
+  remote_path="$(get_pane_path_osc7)"
+
+  if [[ -n "$remote_path" ]]
+  then
+    echo "$remote_path"
+    notify-send "✅ Remote path: $remote_path"
+    return 0
+  fi
+
+  # Fall back to ps1 extraction
+  notify-send "Fall back to ps1 extraction"
+  notify-send "DEBUG: $(tmux display -pF '#{pane_path}')"
+  extract_path_from_ps1
 }
 
 extract_path_from_ps1() {
