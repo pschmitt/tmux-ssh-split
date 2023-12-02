@@ -327,7 +327,7 @@ get_pane_path_osc7() {
   # pane_path returns "file://myhost/home/pschmitt" where myhost is the
   # hostname and the rest the path
   tmux display -pF '#{pane_path}' | \
-    sed -nr 's#file://([^/]+)(/.*)#\2#p'
+    sed -nr 's#file://([^/]*)(/.*)#\2#p'
 }
 
 get_remote_path() {
@@ -337,13 +337,11 @@ get_remote_path() {
   if [[ -n "$remote_path" ]]
   then
     echo "$remote_path"
-    notify-send "✅ Remote path: $remote_path"
     return 0
   fi
 
   # Fall back to ps1 extraction
-  notify-send "Fall back to ps1 extraction"
-  notify-send "DEBUG: $(tmux display -pF '#{pane_path}')"
+  echo "Failed to determine remote path using OSC7, falling back to PS1 extraction" >&2
   extract_path_from_ps1
 }
 
