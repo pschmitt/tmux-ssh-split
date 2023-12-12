@@ -326,8 +326,21 @@ guess_remote_shell() {
 get_pane_path_osc7() {
   # pane_path returns "file://myhost/home/pschmitt" where myhost is the
   # hostname and the rest the path
-  tmux display -pF '#{pane_path}' | \
-    sed -nr 's#file://([^/]*)(/.*)#\2#p'
+  local data="$(tmux display -pF '#{pane_path}')"
+  local local_host="${HOSTNAME:-$(hostname)}"
+
+  local host path
+  read -r host path <<< "$(sed -nr 's#file://([^/]*)(/.*)#\1 \2#p')"
+
+  # Only return the path if the host is not the local one
+  # This is to avoid returning the local path when the remote shell does
+  # not support OSC7
+  if [[ "$host" == "$local_host" ]]
+  then
+    return 1
+  fi
+
+  echo "$path"
 }
 
 get_remote_path() {
