@@ -53,7 +53,7 @@ __is_ssh_option() {
 }
 
 is_ssh_command() {
-  [[ "$1" =~ ^(auto)?ssh ]]
+  grep -qE '(autossh)|(ssh) ' <<< "$1"
 }
 
 is_mosh_command() {
