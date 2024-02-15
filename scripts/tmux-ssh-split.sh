@@ -53,11 +53,11 @@ __is_ssh_option() {
 }
 
 is_ssh_command() {
-  grep -qE '(autossh)|(ssh) ' <<< "$1"
+  grep -qE '^[^ ]*(ssh|autossh) ' <<< "$1"
 }
 
 is_mosh_command() {
-  grep -qE '(mosh)|(mosh-client) ' <<< "$1"
+  grep -qE '^[^ ]*(mosh|mosh-client) ' <<< "$1"
 }
 
 is_ssh_or_mosh_command() {
