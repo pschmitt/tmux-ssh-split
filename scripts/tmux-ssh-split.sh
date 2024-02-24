@@ -61,6 +61,18 @@ is_mosh_command() {
 }
 
 is_ssh_or_mosh_command() {
+  # Filter out invalid commands
+  if ! command -v -- "$(cut -d' ' -f1 <<< "$1")" &>/dev/null
+  then
+    return 1
+  fi
+
+  # Filter out git/sftp commands
+  if ! grep -vqE "git-upload-pack|sftp" <<< "$1"
+  then
+    return 1
+  fi
+
   is_ssh_command "$1" || is_mosh_command "$1"
 }
 
