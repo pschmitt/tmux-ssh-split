@@ -342,7 +342,7 @@ get_pane_path_osc7() {
   local local_host="${HOSTNAME:-$(hostname)}"
 
   local host path
-  read -r host path <<< "$(sed -nr 's#file://([^/]*)(/.*)#\1 \2#p')"
+  read -r host path <<< "$(sed -nr 's#file://([^/]*)(/.*)#\1 \2#p' <<< "$data")"
 
   # Only return the path if the host is not the local one
   # This is to avoid returning the local path when the remote shell does
