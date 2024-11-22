@@ -185,7 +185,7 @@ inject_remote_cwd() {
     local parent_cwd="${ssh_cwd%/*}"
     local remote_command=(
       "cd \"${ssh_cwd}\" 2>/dev/null || "
-      "cd \"${parent_cwd}\"; exec \$SHELL"
+      "cd \"${parent_cwd}\"; exec \$SHELL -l"
     )
 
     if is_mosh_command "$ssh_command"
