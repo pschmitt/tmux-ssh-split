@@ -162,12 +162,14 @@ inject_ssh_env() {
   local cmd="$1"
   if is_ssh_command "$cmd"
   then
+    # shellcheck disable=SC2001
     sed 's#ssh#ssh -o SendEnv=TMUX_SSH_SPLIT#' <<< "$cmd"
     return
   fi
 
   if is_mosh_command "$cmd"
   then
+    # shellcheck disable=SC2001
     sed "s#mosh#mosh --ssh='ssh -o SendEnv=TMUX_SSH_SPLIT'#" <<< "$cmd"
     return
   fi
@@ -176,9 +178,9 @@ inject_ssh_env() {
 
 inject_remote_cwd() {
   local ssh_command="$1"
-  local ssh_cwd="$(get_remote_path)"
+  local ssh_cwd
 
-  if [[ -z "$ssh_cwd" ]]
+  if ! ssh_cwd="$(get_remote_path)" || [[ -z "$ssh_cwd" ]]
   then
     echo "Failed to extract remote cwd from PS1" >&2
   else
@@ -247,6 +249,7 @@ get_child_cmds() {
   then
     # Untested, contributed by @liuruibin
     # https://github.com/pschmitt/tmux-ssh-split/pull/6
+    # shellcheck disable=SC2009
     ps -o pid=,ppid=,command= | grep --color=never "${pid}" | \
       awk '{$1="";$2="";print $0}'
     return "$?"
@@ -331,14 +334,15 @@ guess_remote_shell() {
   fi
 
   is_ssh_or_mosh_command "$@" && shift
-  ssh $@ 'echo $SHELL'
+  ssh "$@" 'echo $SHELL'
 }
 
 # Below requires vte shell integration aka osc7
 get_pane_path_osc7() {
   # pane_path returns "file://myhost/home/pschmitt" where myhost is the
   # hostname and the rest the path
-  local data="$(tmux display -pF '#{pane_path}')"
+  local data
+  data="$(tmux display -pF '#{pane_path}')"
   local local_host="${HOSTNAME:-$(hostname)}"
 
   local host path
@@ -371,18 +375,21 @@ get_remote_path() {
 }
 
 extract_path_from_ps1() {
-  local line=$(tmux capture-pane -p | sed '/^$/d' | tail -1)
-  local match
+  local line
+  line=$(tmux capture-pane -p | sed '/^$/d' | tail -1)
 
   # Search for zsh hash dirs (eg: ~zsh/bin)
+  local match
   if match=$(grep -m 1 -oP '~[^\s]+' <<< "$line")
   then
+    # shellcheck disable=2088
     if [[ "$match" == '~' || "$match" == '~/' ]]
     then
       echo "Current dir seems to be '~', ignoring since it probably the default anyway" >&2
       return
     fi
     # Remove trailing $ or # (bash prompt char)
+    # shellcheck disable=2001
     sed 's/[$#]$//' <<< "${match}"
     return
   fi
