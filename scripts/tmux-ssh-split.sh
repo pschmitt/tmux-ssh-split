@@ -384,10 +384,10 @@ extract_path_from_ps1() {
   then
     # Remove trailing $ or # (bash prompt char)
     # shellcheck disable=2001
-    match=$(sed 's/[$#]$//' <<< "${match}")
+    match=$(sed 's/[$#\/]$//' <<< "${match}")
 
     # shellcheck disable=2088
-    if [[ "$match" == '~' || "$match" == '~/' ]]
+    if [[ "$match" == '~' ]]
     then
       echo "Current dir seems to be '~', ignoring since it probably the default anyway" >&2
       return 0
