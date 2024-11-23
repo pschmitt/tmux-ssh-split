@@ -382,16 +382,19 @@ extract_path_from_ps1() {
   local match
   if match=$(grep -m 1 -oP '~[^\s]+' <<< "$line")
   then
+    # Remove trailing $ or # (bash prompt char)
+    # shellcheck disable=2001
+    match=$(sed 's/[$#]$//' <<< "${match}")
+
     # shellcheck disable=2088
     if [[ "$match" == '~' || "$match" == '~/' ]]
     then
       echo "Current dir seems to be '~', ignoring since it probably the default anyway" >&2
-      return
+      return 0
     fi
-    # Remove trailing $ or # (bash prompt char)
-    # shellcheck disable=2001
-    sed 's/[$#]$//' <<< "${match}"
-    return
+
+    echo -n "$match"
+    return 0
   fi
 
   # Search for paths
