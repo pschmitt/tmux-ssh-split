@@ -200,7 +200,7 @@ inject_remote_cwd() {
 
   remote_command+=(
     ";"
-    "exec \$SHELL -l"
+    "exec \${SHELL:-/usr/bin/env sh} -l"
   )
 
   if is_mosh_command "$ssh_command"
