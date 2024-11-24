@@ -186,7 +186,7 @@ inject_remote_cwd() {
   else
     local parent_cwd="${ssh_cwd%/*}"
     local remote_command=(
-      "cd \"${ssh_cwd}\" 2>/dev/null || "
+      "cd \"${ssh_cwd}\" 2>/dev/null ||"
       "cd \"${parent_cwd}\"; exec \$SHELL -l"
     )
 
