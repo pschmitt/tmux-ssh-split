@@ -183,19 +183,31 @@ inject_remote_cwd() {
   if ! ssh_cwd="$(get_remote_path)" || [[ -z "$ssh_cwd" ]]
   then
     echo "Failed to extract remote cwd from PS1" >&2
-  else
-    local parent_cwd="${ssh_cwd%/*}"
-    local remote_command=(
-      "cd \"${ssh_cwd}\" 2>/dev/null ||"
-      "cd \"${parent_cwd}\"; exec \$SHELL -l"
-    )
+    echo "$ssh_command"
+    return 0
+  fi
 
-    if is_mosh_command "$ssh_command"
-    then
-      ssh_command="$ssh_command -- sh -c '${remote_command[*]}'"
-    else
-      ssh_command="$ssh_command -t '${remote_command[*]}'"
-    fi
+  local remote_command=(
+    "cd \"${ssh_cwd}\" 2>/dev/null"
+  )
+
+  local parent_cwd="${ssh_cwd%/*}"
+  if [[ -n "$parent_cwd" ]]
+  then
+    remote_command+=("||")
+    remote_command+=("cd \"${parent_cwd}\"")
+  fi
+
+  remote_command+=(
+    ";"
+    "exec \$SHELL -l"
+  )
+
+  if is_mosh_command "$ssh_command"
+  then
+    ssh_command="$ssh_command -- sh -c '${remote_command[*]}'"
+  else
+    ssh_command="$ssh_command -t '${remote_command[*]}'"
   fi
 
   echo "$ssh_command"
