@@ -575,7 +575,7 @@ then
   then
     # Escape single quotes in the command
     SSH_COMMAND_ESCAPED=${SSH_COMMAND//\'/\'\\\'\'}
-    START_CMD="echo '🧙👉 Running \"${SSH_COMMAND_ESCAPED}\"'; ${START_CMD}"
+    START_CMD="echo -e '🧙👉 Running \e[34;1m\$ ${SSH_COMMAND_ESCAPED}\e[0m'; ${START_CMD}"
   fi
 
   if [[ -n "$WINDOW" ]]
