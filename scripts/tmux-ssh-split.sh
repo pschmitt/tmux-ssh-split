@@ -226,9 +226,7 @@ extract_ssh_host() {
 
   while [[ -n "$*" ]]
   do
-    shift_index=$(__is_ssh_option "$1")
-    # shellcheck disable=2181
-    if [[ "$?" -ne 0 ]]
+    if ! shift_index=$(__is_ssh_option "$1")
     then
       break
     fi
@@ -293,31 +291,32 @@ get_ssh_command() {
   # pane_pid="1722114"
   get_child_cmds "$pane_pid" | while read -r child_cmd
   do
-    if is_ssh_or_mosh_command "$child_cmd"
+    if ! is_ssh_or_mosh_command "$child_cmd"
     then
-      # Filter out "ssh -W"
-      if grep -qE "ssh.*\s+-W\s+" <<< "$child_cmd"
+      continue
+    fi
+    # Filter out "ssh -W"
+    if grep -qE "ssh.*\s+-W\s+" <<< "$child_cmd"
+    then
+      continue
+    fi
+    # mosh is a special case, the child command will look like this:
+    # mosh-client -# hostname | 192.168.69.42 60001
+    if is_mosh_command "$child_cmd"
+    then
+      host="$(extract_mosh_host "$child_cmd")"
+
+      if [[ -z "$host" ]]
       then
+        echo "Could not extract hostname from mosh command: $child_cmd" >&2
         continue
       fi
-      # mosh is a special case, the child command will look like this:
-      # mosh-client -# hostname | 192.168.69.42 60001
-      if is_mosh_command "$child_cmd"
-      then
-        host="$(extract_mosh_host "$child_cmd")"
 
-        if [[ -z "$host" ]]
-        then
-          echo "Could not extract hostname from mosh command: $child_cmd" >&2
-          continue
-        fi
-
-        child_cmd="LC_ALL=${LC_ALL:-en_US.UTF-8} mosh $host"
-      fi
-
-      echo "$child_cmd"
-      return
+      child_cmd="LC_ALL=${LC_ALL:-en_US.UTF-8} mosh $host"
     fi
+
+    echo "$child_cmd"
+    return
   done
 
   return 1
@@ -515,18 +514,20 @@ then
     then
       tmux display "Error: current pane seems to not be running SSH..."
       echo "Could not determine SSH command" >&2
-    else
-      if [[ -n "$WINDOW" ]]
-      then
-        # remove -h and -v from split args
-        SPLIT_ARGS=("${SPLIT_ARGS[@]/-h}")
-        SPLIT_ARGS=("${SPLIT_ARGS[@]/-v}")
-
-        tmux new-window "${SPLIT_ARGS[@]}"
-      else
-        tmux split "${SPLIT_ARGS[@]}"
-      fi
+      exit 1
     fi
+
+    if [[ -n "$WINDOW" ]]
+    then
+      # remove -h and -v from split args
+      SPLIT_ARGS=("${SPLIT_ARGS[@]/-h}")
+      SPLIT_ARGS=("${SPLIT_ARGS[@]/-v}")
+
+      tmux new-window "${SPLIT_ARGS[@]}"
+    else
+      tmux split "${SPLIT_ARGS[@]}"
+    fi
+
     exit 0
   fi
 
