@@ -220,7 +220,7 @@ extract_ssh_host() {
     # shellcheck disable=2086
     set -- $1
   fi
-  shift  # shift the commad (ssh)
+  shift  # shift the command (ssh)
 
   local shift_index
 
