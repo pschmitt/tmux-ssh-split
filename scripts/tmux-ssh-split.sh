@@ -68,7 +68,7 @@ is_ssh_or_mosh_command() {
   fi
 
   # Filter out git/sftp commands
-  if ! grep -vqE "git-upload-pack|sftp" <<< "$1"
+  if ! grep -vqE "git-(upload|receive|send)-pack|sftp" <<< "$1"
   then
     return 1
   fi
