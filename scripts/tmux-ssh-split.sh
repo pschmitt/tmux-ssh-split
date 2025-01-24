@@ -393,9 +393,9 @@ extract_path_from_ps1() {
   local match
   if match=$(grep -m 1 -oP '~[^\s]+' <<< "$line")
   then
-    # Remove trailing $ or # (bash prompt char)
+    # Remove trailing '$' or '#' (bash prompt char) and ']'
     # shellcheck disable=2001
-    match=$(sed 's/[$#\/]$//' <<< "${match}")
+    match=$(sed 's|[]$#/]*$||' <<< "${match}")
 
     # shellcheck disable=2088
     if [[ "$match" == '~' ]]
@@ -413,9 +413,9 @@ extract_path_from_ps1() {
   then
     # Add leading slash if missing
     [[ ! $match = /* ]] && match="/$match"
-    # Remove trailing $ or # (bash prompt char)
+    # Remove trailing '$', '#' and ']'
     # Remove quotes (eg: ' or ")
-    sed -e 's/[$#]$//' -e "s#['\"]*##g" <<< "${match}"
+    sed -e 's/[]$#]$//' -e "s#['\"]*##g" <<< "${match}"
     return
   fi
 
