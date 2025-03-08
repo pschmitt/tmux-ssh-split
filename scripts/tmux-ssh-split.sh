@@ -25,14 +25,14 @@ get_pane_pid_from_pane_id() {
 
 __is_ssh_option() {
   # This returns a shift index
-  # 0: Don't shift (this is the hostname or part of the command)
-  # 1: shift 1 (optionless flags)
+  # 0: Don't shift (this is either the hostname, or part of the command)
+  # 1: shift 1 (option-less flags)
   # 2: shift 2 (flags with mandatory options)
   case "$1" in
     autossh|ssh|mosh)
       echo "1"
       ;;
-    # Optionless flags (can be combined - hence the "*"
+    # Option-less flags (can be combined - hence the "*")
     -4*|-6*|-A*|-a*|-C*|-f*|-G*|-g*|-K*|-k*|-M*|-N*|-n*|-q*|-s*|-T*|-t*|-v*|-V*|-X*|-x*|-Y*|-y*)
       echo "1"
       ;;
