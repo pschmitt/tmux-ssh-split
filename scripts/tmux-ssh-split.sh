@@ -89,30 +89,19 @@ is_ssh_or_mosh_command() {
 }
 
 strip_command() {
-  # FIXME This won't work for commands like the followin:
-  # ssh host.example.com -l root
-  # It will remove the "-l root" part.
-
   local pid cmd
   read -r pid cmd <<< "$*"
 
   # Return immediately if not processing an SSH command
   is_ssh_command "$cmd" || return 1
 
-  # FIXME Can we remove this?
-  # # Re-set the args in case the whole command is passed through "$1"
-  # if [[ "$#" -eq 1 ]]
-  # then
-  #   # shellcheck disable=2086
-  #   set -- $1
-  # fi
-
   if is_linux && [[ -r /proc/${pid}/cmdline ]]
   then
     # cmdline is null-separated
     mapfile -d '' -t cmd < "/proc/${pid}/cmdline"
-    set -- "${cmd[@]}"
   fi
+
+  set -- "${cmd[@]}"
 
   local og_args=("$@")
   local res=()
@@ -150,12 +139,9 @@ strip_command() {
   # Process args that follow the hostname
   while [[ -n "$*" ]]
   do
-    shift_index=$(__is_ssh_option "$1")
-
-    # shellcheck disable=2181
-    # Stop processing args if we hit a command
-    if [[ "$?" -ne 0 ]]
+    if ! shift_index=$(__is_ssh_option "$1")
     then
+      # Stop processing args if we hit a command
       break
     fi
 
