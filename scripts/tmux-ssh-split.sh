@@ -11,6 +11,18 @@ usage() {
   echo "  -c DIR      Set start directory for pane"
 }
 
+is_linux() {
+  local os
+  os=$(uname -s)
+  [[ "${os,,}" == "linux" ]]
+}
+
+is_macos() {
+  local os
+  os=$(uname -s)
+  [[ "${os,,}" == "darwin" ]]
+}
+
 get_current_pane_info() {
   tmux display -p '#{pane_id} #{pane_pid}'
 }
@@ -33,7 +45,7 @@ __is_ssh_option() {
       echo "1"
       ;;
     # Option-less flags (can be combined - hence the "*")
-    -4*|-6*|-A*|-a*|-C*|-f*|-G*|-g*|-K*|-k*|-M*|-N*|-n*|-q*|-s*|-T*|-t*|-v*|-V*|-X*|-x*|-Y*|-y*)
+    -4*|-6*|-A*|-a*|-C*|-f*|-G*|-g*|-K*|-k*|-M*|-N*|-n*|-q*|-s*|-T*|-t*|-v*|-V*|-X*|-x*|-Y*|-y*|--)
       echo "1"
       ;;
     # Flags with options
@@ -81,17 +93,25 @@ strip_command() {
   # ssh host.example.com -l root
   # It will remove the "-l root" part.
 
-  # Return immediately if not processing an SSH command
-  if ! is_ssh_command "$*"
-  then
-    return 1
-  fi
+  local pid cmd
+  read -r pid cmd <<< "$*"
 
-  # Re-set the args in case the whole command is passed through "$1"
-  if [[ "$#" -eq 1 ]]
+  # Return immediately if not processing an SSH command
+  is_ssh_command "$cmd" || return 1
+
+  # FIXME Can we remove this?
+  # # Re-set the args in case the whole command is passed through "$1"
+  # if [[ "$#" -eq 1 ]]
+  # then
+  #   # shellcheck disable=2086
+  #   set -- $1
+  # fi
+
+  if is_linux && [[ -r /proc/${pid}/cmdline ]]
   then
-    # shellcheck disable=2086
-    set -- $1
+    # cmdline is null-separated
+    mapfile -d '' -t cmd < "/proc/${pid}/cmdline"
+    set -- "${cmd[@]}"
   fi
 
   local og_args=("$@")
@@ -101,11 +121,9 @@ strip_command() {
 
   while [[ -n "$*" ]]
   do
-    shift_index=$(__is_ssh_option "$1")
-    # shellcheck disable=2181
-    # Stop processing args if we hit a command
-    if [[ "$?" -ne 0 ]]
+    if ! shift_index=$(__is_ssh_option "$1")
     then
+      # Stop processing args if we hit a command
       break
     fi
 
@@ -154,25 +172,27 @@ strip_command() {
   # Echo result back and append host
   if [[ -n "${res[*]}" ]]
   then
-    echo "${res[*]} ${og_args[${host_index}]}"
+    echo "${res[*]@Q} ${og_args[${host_index}]}"
   fi
 }
 
 inject_ssh_env() {
-  local cmd="$1"
-  if is_ssh_command "$cmd"
+  local cmd=("$@")
+
+  if is_ssh_command "${cmd[*]}"
   then
     # shellcheck disable=SC2001
-    sed 's#ssh#ssh -o SendEnv=TMUX_SSH_SPLIT#' <<< "$cmd"
-    return
+    sed 's#ssh#ssh -o SendEnv=TMUX_SSH_SPLIT#' <<< "${cmd[*]}"
+    return $?
   fi
 
-  if is_mosh_command "$cmd"
+  if is_mosh_command "${cmd[*]}"
   then
     # shellcheck disable=SC2001
-    sed "s#mosh#mosh --ssh='ssh -o SendEnv=TMUX_SSH_SPLIT'#" <<< "$cmd"
-    return
+    sed "s#mosh#mosh --ssh='ssh -o SendEnv=TMUX_SSH_SPLIT'#" <<< "${cmd[*]}"
+    return $?
   fi
+
   return 1
 }
 
@@ -252,27 +272,27 @@ extract_mosh_host() {
 }
 
 get_child_cmds() {
-  local pid="$1"
+  local ppid="$1"
 
   # macOS
-  if [[ "$(uname -s)" == "Darwin" ]]
+  if is_macos
   then
     # Untested, contributed by @liuruibin
     # https://github.com/pschmitt/tmux-ssh-split/pull/6
+    # NOTE Shouldn't we use "ps a" here?
     # shellcheck disable=SC2009
-    ps -o pid=,ppid=,command= | grep --color=never "${pid}" | \
-      awk '{$1="";$2="";print $0}'
+    ps -o ppid=,pid=,command= | \
+      awk '/^\s*'"${ppid}"'\s+/ { $1=""; print $0 }'
     return "$?"
   fi
 
   # Linux
-  ps -o command= -g "${pid}"
+  ps -o pid=,command= -g "$ppid"
 }
 
 # $1 is optional, disable 2120
 # shellcheck disable=2120
 get_ssh_command() {
-  local child_cmd
   local pane_id
   local pane_pid
 
@@ -289,17 +309,15 @@ get_ssh_command() {
   # For debugging you can set the pane PID manually here
   # to list tmux pane pids run: $ tmux list-panes -F '#{pane_pid}'
   # pane_pid="1722114"
-  get_child_cmds "$pane_pid" | while read -r child_cmd
+  local child_pid child_cmd
+  get_child_cmds "$pane_pid" | while read -r child_pid child_cmd
   do
-    if ! is_ssh_or_mosh_command "$child_cmd"
-    then
-      continue
-    fi
+    # Skip non-ssh commands
+    is_ssh_or_mosh_command "$child_cmd" || continue
+
     # Filter out "ssh -W"
-    if grep -qE "ssh.*\s+-W\s+" <<< "$child_cmd"
-    then
-      continue
-    fi
+    grep -qE "ssh.*\s+-W\s+" <<< "$child_cmd" && continue
+
     # mosh is a special case, the child command will look like this:
     # mosh-client -# hostname | 192.168.69.42 60001
     if is_mosh_command "$child_cmd"
@@ -315,8 +333,8 @@ get_ssh_command() {
       child_cmd="LC_ALL=${LC_ALL:-en_US.UTF-8} mosh $host"
     fi
 
-    echo "$child_cmd"
-    return
+    echo "$child_pid $child_cmd"
+    return 0
   done
 
   return 1
