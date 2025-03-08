@@ -156,7 +156,9 @@ strip_command() {
   # Echo result back and append host
   if [[ -n "${res[*]}" ]]
   then
-    echo "${res[*]@Q} $ssh_hostname"
+    printf '%q ' "${res[@]}" "$ssh_hostname"
+    # Alternative (bashism)
+    # echo "${res[*]@Q} $ssh_hostname"
   fi
 }
 
