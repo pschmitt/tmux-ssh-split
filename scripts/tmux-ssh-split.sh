@@ -105,25 +105,25 @@ strip_command() {
 
   local og_args=("$@")
   local res=()
-  local shift_index
+  local shift_num
   local host_index=0
 
   while [[ -n "$*" ]]
   do
-    if ! shift_index=$(__is_ssh_option "$1")
+    if ! shift_num=$(__is_ssh_option "$1")
     then
       # Stop processing args if we hit a command
       break
     fi
 
     # Advance host index (we didn't process that arg yet)
-    host_index=$(( host_index + shift_index ))
+    host_index=$(( host_index + shift_num ))
 
-    if [[ -n "$shift_index" ]]
-    then
-      shift "$shift_index"
-    fi
+    [[ -n "$shift_num" ]] || continue
+    shift "$shift_num"
   done
+
+  local ssh_hostname="${og_args[${host_index}]}"
 
   if [[ -n "$1" ]]
   then
@@ -139,26 +139,24 @@ strip_command() {
   # Process args that follow the hostname
   while [[ -n "$*" ]]
   do
-    if ! shift_index=$(__is_ssh_option "$1")
+    if ! shift_num=$(__is_ssh_option "$1")
     then
       # Stop processing args if we hit a command
       break
     fi
 
-    if [[ -n "$shift_index" ]]
-    then
-      # Add SSH option (+ arg) to the end of the res array. This will end up
-      # *before* the hostname in what's printed to stdout at the end.
-      res+=("${post_host_args[@]:${post_index}:$(( post_index + shift_index ))}")
-      post_index=$(( post_index + shift_index ))
-      shift "$shift_index"
-    fi
+    [[ -n "$shift_num" ]] || continue
+    # Add SSH option (+ arg) to the end of the res array. This will end up
+    # *before* the hostname in what's printed to stdout at the end.
+    res+=("${post_host_args[@]:${post_index}:$(( post_index + shift_num ))}")
+    post_index=$(( post_index + shift_num ))
+    shift "$shift_num"
   done
 
   # Echo result back and append host
   if [[ -n "${res[*]}" ]]
   then
-    echo "${res[*]@Q} ${og_args[${host_index}]}"
+    echo "${res[*]@Q} $ssh_hostname"
   fi
 }
 
@@ -228,19 +226,17 @@ extract_ssh_host() {
   fi
   shift  # shift the command (ssh)
 
-  local shift_index
+  local shift_num
 
   while [[ -n "$*" ]]
   do
-    if ! shift_index=$(__is_ssh_option "$1")
+    if ! shift_num=$(__is_ssh_option "$1")
     then
       break
     fi
 
-    if [[ -n "$shift_index" ]]
-    then
-      shift "$shift_index"
-    fi
+    [[ -n "$shift_num" ]] || continue
+    shift "$shift_num"
   done
 
   if [[ -n "$1" ]]
