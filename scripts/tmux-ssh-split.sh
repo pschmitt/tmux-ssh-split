@@ -148,7 +148,7 @@ strip_command() {
     [[ -n "$shift_num" ]] || continue
     # Add SSH option (+ arg) to the end of the res array. This will end up
     # *before* the hostname in what's printed to stdout at the end.
-    res+=("${post_host_args[@]:${post_index}:$(( post_index + shift_num ))}")
+    res+=("${post_host_args[@]:${post_index}:${shift_num}}")
     post_index=$(( post_index + shift_num ))
     shift "$shift_num"
   done
