@@ -317,7 +317,7 @@ get_ssh_command() {
       child_cmd="LC_ALL=${LC_ALL:-en_US.UTF-8} mosh $host"
     fi
 
-    echo "$child_pid $child_cmd"
+    echo "$child_cmd"
     return 0
   done
 
@@ -406,18 +406,19 @@ extract_path_from_ps1() {
       return 0
     fi
 
+    # Replace ~ with $HOME to avoid no such file or directory error. See issue #16
+    match="${match/\~/\$HOME}"
+
     echo -n "$match"
     return 0
   fi
 
   # Search for paths
-  if match=$(grep -m 1 -oP '/\K[^ ]*' <<< "$line")
+  if match=$(grep -m 1 -oP '/[^ ]*' <<< "$line")
   then
-    # Add leading slash if missing
-    [[ ! $match = /* ]] && match="/$match"
-    # Remove trailing '$', '#' and ']'
+    # Remove trailing '$', '#' and ']' See issue #17
     # Remove quotes (eg: ' or ")
-    sed -e 's/[]$#]$//' -e "s#['\"]*##g" <<< "${match}"
+    sed -r -e 's/[]$#]+$//' -e "s/['\"]//g"  <<< "${match}"
     return
   fi
 
