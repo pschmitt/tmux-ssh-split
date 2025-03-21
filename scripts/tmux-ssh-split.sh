@@ -317,7 +317,7 @@ get_ssh_command() {
       child_cmd="LC_ALL=${LC_ALL:-en_US.UTF-8} mosh $host"
     fi
 
-    echo "$child_pid $child_cmd"
+    echo "$child_cmd"
     return 0
   done
 
