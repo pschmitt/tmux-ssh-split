@@ -417,9 +417,10 @@ extract_path_from_ps1() {
   then
     # Add leading slash if missing
     [[ ! $match = /* ]] && match="/$match"
-    # Remove trailing '$', '#' and ']'
-    # Remove quotes (eg: ' or ")
-    sed -e 's/[]$#]$//' -e "s#['\"]*##g" <<< "${match}"
+
+    # 1. Remove trailing '$', '#' and ']'
+    # 2. Remove quotes (eg: ' or ")
+    sed -r -e 's/[]$#]$//' -e "s#['\"]*##g" <<< "${match}"
     return
   fi
 
