@@ -36,7 +36,7 @@ horizontal and vertical splits, respectively.
 | `@ssh-split-v-key`           | Key to bind for vertical splits (prefixed)                                                                                                                                                                                                                                                                                                                               | *none*        |
 | `@ssh-split-w-key`           | Key to bind for new windows (prefixed)                                                                                                                                                                                                                                                                                                                                   | *none*        |
 | `@ssh-split-keep-cwd`        | Determines whether the starting directory of the new pane should be the same as the current pane. This is similar to executing `tmux split -c "#{pane_current_path}"`.                                                                                                                                                                                                   | `false`       |
-| `@ssh-split-keep-remote-cwd` | Similar to the above, but for remote (SSH) splits. Note that remote path detection requires an [OSC7 prompt](https://wezfurlong.org/wezterm/shell-integration.html#osc-7-escape-sequence-to-set-the-working-directory) and falls back to PS1 parsing, so it won't work if your prompt doesn't contain the current path. This works best with `@ssh-split-strip-cmd=true` | `false`       |
+| `@ssh-split-keep-remote-cwd` | Similar to the above, but for remote (SSH) splits. Note that remote path detection requires an [OSC7 prompt](https://wezfurlong.org/wezterm/shell-integration.html#osc-7-escape-sequence-to-set-the-working-directory) and falls back to PS1 parsing, so it won't work if your prompt doesn't contain the current path. This works best with `@ssh-split-strip-cmd=true` See known issues section | `false`       |
 | `@ssh-split-fail`            | Determines whether to do nothing if the current pane isn't running SSH. By default, a normal split will occur.                                                                                                                                                                                                                                                           | `false`       |
 | `@ssh-split-no-env`          | If set to true, this will not set `TMUX_SSH_SPLIT=1` in splits (see tips and tricks section)                                                                                                                                                                                                                                                                             | `false`       |
 | `@ssh-split-no-shell`        | If set to true, this will prevent a shell session from spawning after the SSH session, causing the pane to exit when the SSH session ends.                                                                                                                                                                                                                               | `false`       |
@@ -83,6 +83,43 @@ the following:
 ```
 set -g @disabled_keys "|"
 ```
+
+## 📃 Known issues
+
+### The ssh split always drops into the default shell
+
+ssh split always drops into the default shell on the remote. This is true irrespective 
+of `@ssh-split-keep-remote-cwd` option. The default ssh command drops you into the
+default shell and if the change of directory is requested, the command drops you into 
+the `$SHELL`. The local shell is not taken into consideration. 
+
+In other words, if you switch from bash to, say csh, and ssh split, the resulting pane/window
+will open the default shell of the remote.
+
+A solution can be implemented if the prompt string provides a way to identify the current shell.
+Such a hint can be used to replace the default `$SHELL` with the current shell using
+`/usr/bin/env current-shell -l`
+
+Enhancements are welcome. Feel free to submit a merge request.
+
+### Cannot create ssh split from another ssh split if the current directory is not ~
+
+If you are not in ~ directly, the ssh split adds convinient `cd` commands to the ssh command
+to land you in the same working directory. However, if you run ssh split from another
+ssh split, the `cd` commands get appended to the ssh command that started the ssh split and
+this will fail.
+
+For example, if the directory is "/tmp", ssh split runs:
+`ssh -o SendEnv=TMUX_SSH_SPLIT remote -t 'cd "/tmp" ; exec ${SHELL} -l'`
+
+If you run another ssh split from the new ssh split, the command turns out to be
+`ssh -o SendEnv=TMUX_SSH_SPLIT -o SendEnv=TMUX_SSH_SPLIT remote -t cd "/tmp" ; exec ${SHELL} -l -t 'cd "/tmp" ; exec ${SHELL} -l'`
+and this will fail.
+
+The `@ssh-split-strip-cmd` option seems to have no impact on this behavior. 
+
+This can be fixed by parsing the ssh command and removing the problemtic parts.
+Enhancements are welcome. Feel free to submit a merge request.
 
 ## 🎩 Tips and Tricks
 
