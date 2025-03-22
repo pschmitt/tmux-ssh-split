@@ -194,19 +194,22 @@ inject_remote_cwd() {
   fi
 
   local remote_command=(
-    "cd \"${ssh_cwd}\" 2>/dev/null"
+    #"cd \"${ssh_cwd}\" 2>/dev/null" # commented out for not being portable & also to avoid silent failure
+    "cd \"${ssh_cwd}\""
   )
 
-  local parent_cwd="${ssh_cwd%/*}"
-  if [[ -n "$parent_cwd" ]]
-  then
-    remote_command+=("||")
-    remote_command+=("cd \"${parent_cwd}\"")
-  fi
+  # commented out to avoid silent failure
+  #local parent_cwd="${ssh_cwd%/*}"
+  #if [[ -n "$parent_cwd" ]]
+  #then
+  #  remote_command+=("||")
+  #  remote_command+=("cd \"${parent_cwd}\"")
+  #fi
 
   remote_command+=(
     ";"
-    "exec \${SHELL:-/usr/bin/env sh} -l"
+    #"exec \${SHELL:-/usr/bin/env sh} -l" # commented out for not being portable
+    "exec \${SHELL} -l"
   )
 
   if is_mosh_command "$ssh_command"
