@@ -413,7 +413,7 @@ extract_path_from_ps1() {
   fi
 
   # Search for paths
-  if match=$(grep -m 1 -oP '/\K[^ ]*' <<< "$line")
+  if match=$(grep -m 1 -o '/[^ ]*' <<< "$line")
   then
     # Add leading slash if missing
     [[ ! $match = /* ]] && match="/$match"
