@@ -406,7 +406,9 @@ extract_path_from_ps1() {
       return 0
     fi
 
-    echo -n "$match"
+    # Replace ~ with $HOME to avoid "No such file or directory" errors.
+    # https://github.com/pschmitt/tmux-ssh-split/issues/16
+    echo -n "${match/\~/\$HOME}"
     return 0
   fi
 
