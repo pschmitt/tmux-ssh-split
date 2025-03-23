@@ -415,9 +415,10 @@ extract_path_from_ps1() {
   # Search for paths
   if match=$(grep -m 1 -o '/[^ ]*' <<< "$line")
   then
-    # 1. Remove trailing '$', '#' and ']'
+    # 1. Remove trailing '$', '#', ']', and ' '(space)
+    #    https://github.com/pschmitt/tmux-ssh-split/issues/17
     # 2. Remove quotes (eg: ' or ")
-    sed -r -e 's/[]$#]$//' -e "s#['\"]*##g" <<< "${match}"
+    sed -r -e 's/[]$# ]+$//' -e "s/['\"]//g" <<< "${match}"
     return
   fi
 
