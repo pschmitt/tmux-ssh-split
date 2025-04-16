@@ -447,6 +447,10 @@ then
         WINDOW=1
         shift
         ;;
+      -r|--respawn)
+        RESPAWN=1
+        shift
+        ;;
       -c)
         if [[ -z "$2" ]]
         then
@@ -527,6 +531,9 @@ then
       SPLIT_ARGS=("${SPLIT_ARGS[@]/-v}")
 
       tmux new-window "${SPLIT_ARGS[@]}"
+    elif [[ -n "$RESPAWN" ]]
+    then
+      tmux respawn-pane -k "${SPLIT_ARGS[@]}"
     else
       tmux split "${SPLIT_ARGS[@]}"
     fi
@@ -588,6 +595,9 @@ then
     SPLIT_ARGS=("${SPLIT_ARGS[@]/-v}")
 
     tmux new-window "${SPLIT_ARGS[@]}" "$START_CMD"
+  elif [[ -n "$RESPAWN" ]]
+  then
+    tmux respawn-pane -k "${SPLIT_ARGS[@]}" "$START_CMD"
   else
     tmux split "${SPLIT_ARGS[@]}" "$START_CMD"
   fi

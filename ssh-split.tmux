@@ -24,6 +24,7 @@ main() {
   local wkey
   local keep_cwd
   local keep_remote_cwd
+  local rkey
 
   debug="$(get_tmux_option @ssh-split-debug)"
   verbose="$(get_tmux_option @ssh-split-verbose)"
@@ -36,6 +37,7 @@ main() {
   hkey="$(get_tmux_option @ssh-split-h-key)"
   vkey="$(get_tmux_option @ssh-split-v-key)"
   wkey="$(get_tmux_option @ssh-split-w-key)"
+  rkey="$(get_tmux_option @ssh-split-r-key)"
 
   case "$keep_cwd" in
     true|1|yes)
@@ -107,6 +109,12 @@ main() {
   then
     tmux unbind "$wkey"
     tmux bind-key "$wkey" run "${script_path} ${extra_args[*]} --window"
+  fi
+
+  if [[ -n "$rkey" ]]
+  then
+    tmux unbind "$rkey"
+    tmux bind-key "$rkey" run "${script_path} ${extra_args[*]} --respawn"
   fi
 }
 
