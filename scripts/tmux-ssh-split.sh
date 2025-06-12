@@ -317,7 +317,7 @@ get_ssh_command() {
       child_cmd="LC_ALL=${LC_ALL:-en_US.UTF-8} mosh $host"
     fi
 
-    echo "$child_cmd"
+    echo "$child_pid $child_cmd"
     return 0
   done
 
@@ -513,7 +513,7 @@ then
     SPLIT_ARGS+=(-e "TMUX_SSH_SPLIT=1")
   fi
 
-  SSH_COMMAND="$(get_ssh_command)"
+  read -r SSH_COMMAND_PID SSH_COMMAND <<< "$(get_ssh_command)"
 
   if [[ -z "$SSH_COMMAND" ]]
   then
@@ -543,7 +543,7 @@ then
 
   if [[ -n "$STRIP_CMD" ]]
   then
-    SSH_COMMAND_STRIPPED="$(strip_command "$SSH_COMMAND")"
+    SSH_COMMAND_STRIPPED="$(strip_command "$SSH_COMMAND_PID" "$SSH_COMMAND")"
 
     if [[ -z "$SSH_COMMAND_STRIPPED" ]]
     then
