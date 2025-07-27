@@ -41,7 +41,7 @@ __is_ssh_option() {
   # 1: shift 1 (option-less flags)
   # 2: shift 2 (flags with mandatory options)
   case "$1" in
-    autossh|ssh|mosh)
+    pssh|dbclient|sshpass|autossh|ssh|mosh)
       echo "1"
       ;;
     # Option-less flags (can be combined - hence the "*")
@@ -65,7 +65,7 @@ __is_ssh_option() {
 }
 
 is_ssh_command() {
-  grep -qE '^[^ ]*(ssh|autossh) ' <<< "$1"
+  grep -qE '^[^ ]*(pssh|dbclient|sshpass|ssh|autossh) ' <<< "$1"
 }
 
 is_mosh_command() {
