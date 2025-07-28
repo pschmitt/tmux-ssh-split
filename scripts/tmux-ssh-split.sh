@@ -168,14 +168,14 @@ inject_ssh_env() {
   if is_ssh_command "${cmd[*]}"
   then
     # shellcheck disable=SC2001
-    sed 's#ssh#ssh -o SendEnv=TMUX_SSH_SPLIT#' <<< "${cmd[*]}"
+    sed -E 's#(^|[[:space:]])ssh([[:space:]]|$)#\1ssh -o SendEnv=TMUX_SSH_SPLIT\2#' <<< "${cmd[*]}"
     return $?
   fi
 
   if is_mosh_command "${cmd[*]}"
   then
     # shellcheck disable=SC2001
-    sed "s#mosh#mosh --ssh='ssh -o SendEnv=TMUX_SSH_SPLIT'#" <<< "${cmd[*]}"
+    sed -E "s#(^|[[:space:]])mosh([[:space:]]|$)#\1mosh --ssh='-o SendEnv=TMUX_SSH_SPLIT'\2#" <<< "${cmd[*]}"
     return $?
   fi
 
