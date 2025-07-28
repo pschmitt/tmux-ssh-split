@@ -167,15 +167,33 @@ inject_ssh_env() {
 
   if is_ssh_command "${cmd[*]}"
   then
-    # shellcheck disable=SC2001
-    sed -E 's#(^|[[:space:]])ssh([[:space:]]|$)#\1ssh -o SendEnv=TMUX_SSH_SPLIT\2#' <<< "${cmd[*]}"
+    new_cmd=()
+    for arg in "${cmd[@]}"; do
+      if [[ "$arg" == ssh ]]; then
+        new_cmd+=("ssh" "-o" "SendEnv=TMUX_SSH_SPLIT")
+      else
+        new_cmd+=("$arg")
+      fi
+    done
+    printf '%q ' "${new_cmd[@]}"
+    # # shellcheck disable=SC2001
+    # sed -E 's#(^|[[:space:]])ssh([[:space:]]|$)#\1ssh -o SendEnv=TMUX_SSH_SPLIT\2#' <<< "${cmd[*]}"
     return $?
   fi
 
   if is_mosh_command "${cmd[*]}"
   then
-    # shellcheck disable=SC2001
-    sed -E "s#(^|[[:space:]])mosh([[:space:]]|$)#\1mosh --ssh='-o SendEnv=TMUX_SSH_SPLIT'\2#" <<< "${cmd[*]}"
+    new_cmd=()
+    for arg in "${cmd[@]}"; do
+      if [[ "$arg" == mosh ]]; then
+        new_cmd+=("mosh" "--ssh='-o SendEnv=TMUX_SSH_SPLIT'")
+      else
+        new_cmd+=("$arg")
+      fi
+    done
+    printf '%q ' "${new_cmd[@]}"
+    # # shellcheck disable=SC2001
+    # sed -E "s#(^|[[:space:]])mosh([[:space:]]|$)#\1mosh --ssh='-o SendEnv=TMUX_SSH_SPLIT'\2#" <<< "${cmd[*]}"
     return $?
   fi
 
