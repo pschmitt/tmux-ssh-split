@@ -171,7 +171,7 @@ inject_ssh_env() {
     # This regex-based approach works reliably with /proc/pid/cmdline data
     # where argument boundaries are preserved even for options with spaces
     # shellcheck disable=SC2001
-    sed 's/\(ssh\)\(\s\|$\)/\1 -o SendEnv=TMUX_SSH_SPLIT\2/' <<< "$ssh_command"
+    sed 's/\(ssh\)\([[:space:]]\|$\)/\1 -o SendEnv=TMUX_SSH_SPLIT\2/' <<< "$ssh_command"
     return $?
   fi
 
