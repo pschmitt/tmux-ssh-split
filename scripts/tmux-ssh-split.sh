@@ -163,19 +163,22 @@ strip_command() {
 }
 
 inject_ssh_env() {
-  local cmd=("$@")
+  local ssh_command="$1"
 
-  if is_ssh_command "${cmd[*]}"
+  if is_ssh_command "$ssh_command"
   then
+    # Insert -o SendEnv=TMUX_SSH_SPLIT right after the ssh command
+    # This regex-based approach works reliably with /proc/pid/cmdline data
+    # where argument boundaries are preserved even for options with spaces
     # shellcheck disable=SC2001
-    sed 's#ssh#ssh -o SendEnv=TMUX_SSH_SPLIT#' <<< "${cmd[*]}"
+    sed 's/\(ssh\)\([[:space:]]\|$\)/\1 -o SendEnv=TMUX_SSH_SPLIT\2/' <<< "$ssh_command"
     return $?
   fi
 
-  if is_mosh_command "${cmd[*]}"
+  if is_mosh_command "$ssh_command"
   then
     # shellcheck disable=SC2001
-    sed "s#mosh#mosh --ssh='ssh -o SendEnv=TMUX_SSH_SPLIT'#" <<< "${cmd[*]}"
+    sed "s#mosh#mosh --ssh='ssh -o SendEnv=TMUX_SSH_SPLIT'#" <<< "$ssh_command"
     return $?
   fi
 
@@ -223,8 +226,9 @@ extract_ssh_host() {
   # Re-set the args in case the whole command is passed through "$1"
   if [[ "$#" -eq 1 ]]
   then
+    # Use eval to properly handle quoted arguments with spaces
     # shellcheck disable=2086
-    set -- $1
+    eval "set -- $1"
   fi
   shift  # shift the command (ssh)
 
@@ -342,8 +346,10 @@ get_remote_cwd() {
 guess_remote_shell() {
   if [[ "$#" -eq 1 ]]
   then
+    # Use eval to properly handle quoted arguments with spaces
+    # This is needed to preserve arguments like -o "ProxyCommand ssh -q user@jump nc %h %p"
     # shellcheck disable=2086
-    set -- $1
+    eval "set -- $1"
   fi
 
   is_ssh_or_mosh_command "$@" && shift
