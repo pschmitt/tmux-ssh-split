@@ -256,7 +256,7 @@ extract_ssh_host() {
 
 # FIXME This might not be the most reliable host extraction
 extract_mosh_host() {
-  sed -nr 's/.*mosh-client -# ([^\s+])\s+.*/\1/p' <<< "$1"
+  sed -nE 's/.*mosh-client -# ([^[:space:]]+)[[:space:]]+.*/\1/p' <<< "$1"
 }
 
 get_child_cmds() {
@@ -270,7 +270,7 @@ get_child_cmds() {
     # NOTE Shouldn't we use "ps a" here?
     # shellcheck disable=SC2009
     ps -o ppid=,pid=,command= | \
-      awk '/^\s*'"${ppid}"'\s+/ { $1=""; print $0 }'
+      awk '/^[[:space:]]*'"${ppid}"'[[:space:]]+/ { $1=""; print $0 }'
     return "$?"
   fi
 
@@ -304,7 +304,7 @@ get_ssh_command() {
     is_ssh_or_mosh_command "$child_cmd" || continue
 
     # Filter out "ssh -W"
-    grep -qE "ssh.*\s+-W\s+" <<< "$child_cmd" && continue
+    grep -qE "ssh.*[[:space:]]+-W[[:space:]]+" <<< "$child_cmd" && continue
 
     # mosh is a special case, the child command will look like this:
     # mosh-client -# hostname | 192.168.69.42 60001
@@ -365,7 +365,7 @@ get_pane_path_osc7() {
   local local_host="${HOSTNAME:-$(hostname)}"
 
   local host path
-  read -r host path <<< "$(sed -nr 's#file://([^/]*)(/.*)#\1 \2#p' <<< "$data")"
+  read -r host path <<< "$(sed -nE 's#file://([^/]*)(/.*)#\1 \2#p' <<< "$data")"
 
   # Only return the path if the host is not the local one
   # This is to avoid returning the local path when the remote shell does
@@ -399,7 +399,7 @@ extract_path_from_ps1() {
 
   # Search for zsh hash dirs (eg: ~zsh/bin)
   local match
-  if match=$(grep -m 1 -oP '~[^\s]+' <<< "$line")
+  if match=$(grep -m 1 -oE '~[^[:space:]]+' <<< "$line")
   then
     # Remove trailing '$' or '#' (bash prompt char) and ']'
     # shellcheck disable=2001
@@ -424,7 +424,7 @@ extract_path_from_ps1() {
     # 1. Remove trailing '$', '#', ']', and ' '(space)
     #    https://github.com/pschmitt/tmux-ssh-split/issues/17
     # 2. Remove quotes (eg: ' or ")
-    sed -r -e 's/[]$# ]+$//' -e "s/['\"]//g" <<< "${match}"
+    sed -E -e 's/[]$# ]+$//' -e "s/['\"]//g" <<< "${match}"
     return
   fi
 
