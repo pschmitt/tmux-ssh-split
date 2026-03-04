@@ -14,13 +14,13 @@ usage() {
 is_linux() {
   local os
   os=$(uname -s)
-  [[ "${os,,}" == "linux" ]]
+  [[ "$(tr '[:upper:]' '[:lower:]' <<< "$os")" == "linux" ]]
 }
 
 is_macos() {
   local os
   os=$(uname -s)
-  [[ "${os,,}" == "darwin" ]]
+  [[ "$(tr '[:upper:]' '[:lower:]' <<< "$os")" == "darwin" ]]
 }
 
 get_current_pane_info() {
