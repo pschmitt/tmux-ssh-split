@@ -43,6 +43,8 @@ horizontal and vertical splits, respectively.
 | `@ssh-split-no-shell`        | If set to true, this will prevent a shell session from spawning after the SSH session, causing the pane to exit when the SSH session ends.                                                                                                                                                                                                                               | `false`       |
 | `@ssh-split-strip-cmd`       | If set to true, the SSH command executed in the new pane will be stripped of the remote command portion. For example, if you're running `ssh HOST COMMAND` in a pane and you split it, tmux-ssh-split will create a new pane with a start command of `ssh HOST`.                                                                                                         | `false`       |
 | `@ssh-split-verbose`         | Displays a message before the SSH command is spawned with the command being executed                                                                                                                                                                                                                                                                                     | `false`       |
+| `@ssh-split-ignore-programs` | A whitespace- or comma-separated list of shell patterns. Matching panes use a regular split instead of SSH-aware splitting                                                                                                                                                                                                                                              | *none*        |
+| `@ssh-split-ignore-hosts`    | A whitespace- or comma-separated list of shell patterns. Matching SSH hosts use a regular split instead                                                                                                                                                                                                                                                                  | *none*        |
 | `@ssh-split-debug`           | Debug mode. Redirects the script output to `/tmp/tmux-ssh-split.log` (or `$TMPDIR/tmux-ssh-split.log` if `TMPDIR` is defined).                                                                                                                                                                                                                                           | `false`       |
 
 ### 💡 Example config
@@ -55,6 +57,8 @@ set-option -g @ssh-split-no-env "false"
 set-option -g @ssh-split-no-shell "false"
 set-option -g @ssh-split-strip-cmd "true"
 set-option -g @ssh-split-verbose "true"
+set-option -g @ssh-split-ignore-programs "claude codex"
+set-option -g @ssh-split-ignore-hosts "fnuc rofl-*"
 set-option -g @ssh-split-debug "false"
 set-option -g @ssh-split-h-key "|"
 set-option -g @ssh-split-v-key "S"

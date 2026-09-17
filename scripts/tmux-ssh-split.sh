@@ -35,6 +35,43 @@ get_pane_pid_from_pane_id() {
   tmux list-panes -F "#{pane_id} #{pane_pid}" | awk "/^$1 / { print \$2}"
 }
 
+get_tmux_option() {
+  tmux show-option -gqv "$1"
+}
+
+is_ignored_value() {
+  local value="$1"
+  local option="$2"
+  local ignored_values
+  local -a ignored_patterns
+  local ignored_pattern
+
+  ignored_values="$(get_tmux_option "$option")"
+  if [[ -z "$ignored_values" ]]
+  then
+    return 1
+  fi
+
+  # Support both comma-separated and whitespace-separated patterns.
+  ignored_values="${ignored_values//,/ }"
+  read -r -a ignored_patterns <<< "$ignored_values"
+
+  for ignored_pattern in "${ignored_patterns[@]}"
+  do
+    # shellcheck disable=SC2053
+    if [[ "$value" == $ignored_pattern ]]
+    then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+is_ignored_ssh_host() {
+  is_ignored_value "$1" @ssh-split-ignore-hosts
+}
+
 __is_ssh_option() {
   # This returns a shift index
   # 0: Don't shift (this is either the hostname, or part of the command)
@@ -519,11 +556,42 @@ then
     SPLIT_ARGS+=(-e "TMUX_SSH_SPLIT=1")
   fi
 
-  read -r SSH_COMMAND_PID SSH_COMMAND <<< "$(get_ssh_command)"
+  current_program="$(tmux display -p '#{pane_current_command}')"
+  if is_ignored_value "$current_program" @ssh-split-ignore-programs
+  then
+    FORCE_REGULAR_SPLIT=1
+    SSH_COMMAND_PID=""
+    SSH_COMMAND=""
+  else
+    read -r SSH_COMMAND_PID SSH_COMMAND <<< "$(get_ssh_command)"
+  fi
+
+  if [[ -n "$SSH_COMMAND" ]]
+  then
+    if [[ -n "$STRIP_CMD" ]]
+    then
+      SSH_COMMAND_STRIPPED="$(strip_command "$SSH_COMMAND_PID" "$SSH_COMMAND")"
+
+      if [[ -z "$SSH_COMMAND_STRIPPED" ]]
+      then
+        echo "Could not strip command: $SSH_COMMAND" >&2
+      else
+        SSH_COMMAND="$SSH_COMMAND_STRIPPED"
+      fi
+    fi
+
+    SSH_HOST="$(extract_ssh_host "$SSH_COMMAND")"
+    SSH_HOST="${SSH_HOST##*@}"
+    if [[ -n "$SSH_HOST" ]] && is_ignored_ssh_host "$SSH_HOST"
+    then
+      FORCE_REGULAR_SPLIT=1
+      SSH_COMMAND=""
+    fi
+  fi
 
   if [[ -z "$SSH_COMMAND" ]]
   then
-    if [[ -n "$FAIL" ]]
+    if [[ -n "$FAIL" && -z "$FORCE_REGULAR_SPLIT" ]]
     then
       tmux display "Error: current pane seems to not be running SSH..."
       echo "Could not determine SSH command" >&2
@@ -545,18 +613,6 @@ then
     fi
 
     exit 0
-  fi
-
-  if [[ -n "$STRIP_CMD" ]]
-  then
-    SSH_COMMAND_STRIPPED="$(strip_command "$SSH_COMMAND_PID" "$SSH_COMMAND")"
-
-    if [[ -z "$SSH_COMMAND_STRIPPED" ]]
-    then
-      echo "Could not strip command: $SSH_COMMAND" >&2
-    else
-      SSH_COMMAND="$SSH_COMMAND_STRIPPED"
-    fi
   fi
 
   # Experimental
